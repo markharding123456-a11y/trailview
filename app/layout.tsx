@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
 
-
 export const metadata: Metadata = {
   title: "TrailView — See Every Trail Before You Go",
   description: "GPS-synced first-person trail videos for every outdoor activity — mountain biking, motorcycles, ATVs, skiing, snowmobiling, hiking, hunting, horseback riding, and more across British Columbia.",
@@ -46,22 +45,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/signup" className="bg-green-500 px-3 py-2 rounded-lg text-xs font-semibold">
                 Sign Up
               </Link>
+              <Link href="/contribute" className="text-xs text-white/70 hover:text-white transition-colors px-2 py-2">
+                Contribute
+              </Link>
               <Link href="/explore" className="bg-white/10 border border-white/20 px-3 py-2 rounded-lg text-xs font-semibold">
                 Explore
               </Link>
             </div>
-<<<<<<< HEAD
-            {/* Mobile nav */}
-            <div className="md:hidden flex items-center gap-2">
-              <Link href="/contribute" className="text-sm text-white/70 hover:text-white transition-colors px-3 py-2">
-                Contribute
-              </Link>
-              <Link href="/explore" className="bg-green-500 px-4 py-2 rounded-lg text-sm font-semibold">
-                Explore
-              </Link>
-            </div>
-=======
->>>>>>> 414668b (Add user and contributor sign-up pages with nav CTA)
           </div>
         </nav>
 
@@ -111,6 +101,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <li><Link href="/#how-it-works" className="hover:text-white transition-colors">How It Works</Link></li>
                   <li><Link href="/contribute" className="hover:text-white transition-colors">Contribute</Link></li>
                   <li><Link href="/trail" className="hover:text-white transition-colors">GPS Sync Demo</Link></li>
+                  <li><Link href="/signup" className="hover:text-white transition-colors">Sign Up</Link></li>
                 </ul>
               </div>
             </div>
