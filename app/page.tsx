@@ -286,6 +286,13 @@ export default function LandingPage() {
                 <div className="text-2xl font-bold text-green-400">$850+ / month</div>
                 <div className="text-xs text-white/40 mt-1">Based on 15,000 views/trail at Trailblazer tier</div>
               </div>
+              <Link
+                href="/signup/contributor"
+                className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-400 text-white px-7 py-3.5 rounded-xl font-bold text-base transition-all shadow-lg mt-2"
+              >
+                Sign Up as a Contributor
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+              </Link>
             </div>
             {/* Upload flow preview */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
@@ -461,13 +468,19 @@ export default function LandingPage() {
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to See the Trail?</h2>
           <p className="text-white/60 text-lg mb-8">Stop guessing. Preview any trail, any activity, before you go.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/explore" className="bg-green-500 hover:bg-green-400 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-lg pulse-glow">
-              Start Exploring — It&apos;s Free
+            <Link href="/signup" className="bg-green-500 hover:bg-green-400 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-lg pulse-glow">
+              Create Free Account
             </Link>
-            <Link href="/trail" className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all border border-white/20">
-              Watch the Demo
+            <Link href="/explore" className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all border border-white/20">
+              Explore Trails First
             </Link>
           </div>
+          <p className="text-white/40 text-sm mt-6">
+            Already filming trails?{" "}
+            <Link href="/signup/contributor" className="text-green-400 hover:text-green-300 underline transition-colors">
+              Sign up as a Contributor
+            </Link>
+          </p>
         </div>
       </section>
     </div>
