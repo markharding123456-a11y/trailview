@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
 
+
 export const metadata: Metadata = {
   title: "TrailView — See Every Trail Before You Go",
   description: "GPS-synced first-person trail videos for every outdoor activity — mountain biking, motorcycles, ATVs, skiing, snowmobiling, hiking, hunting, horseback riding, and more across British Columbia.",
