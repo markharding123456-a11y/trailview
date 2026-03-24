@@ -3,8 +3,8 @@ import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "TrailView — See Every Trail Before You Ride",
-  description: "GPS-synced first-person trail videos for mountain biking, motorcycles, ATVs, skiing, snowmobiling, and hiking across British Columbia.",
+  title: "TrailView — See Every Trail Before You Go",
+  description: "GPS-synced first-person trail videos for every outdoor activity — mountain biking, motorcycles, ATVs, skiing, snowmobiling, hiking, hunting, horseback riding, and more across British Columbia.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/explore" className="text-sm text-white/80 hover:text-white transition-colors">Explore Trails</Link>
               <Link href="/#how-it-works" className="text-sm text-white/80 hover:text-white transition-colors">How It Works</Link>
               <Link href="/#activities" className="text-sm text-white/80 hover:text-white transition-colors">Activities</Link>
-              <Link href="/#contributors" className="text-sm text-white/80 hover:text-white transition-colors">Contributors</Link>
+              <Link href="/contribute" className="text-sm text-white/80 hover:text-white transition-colors">Contribute</Link>
               <Link
                 href="/explore"
                 className="bg-green-500 hover:bg-green-400 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-green-500/25"
@@ -34,10 +34,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 Start Exploring
               </Link>
             </div>
-            {/* Mobile menu button */}
-            <Link href="/explore" className="md:hidden bg-green-500 px-4 py-2 rounded-lg text-sm font-semibold">
-              Explore
-            </Link>
+            {/* Mobile nav */}
+            <div className="md:hidden flex items-center gap-2">
+              <Link href="/contribute" className="text-sm text-white/70 hover:text-white transition-colors px-3 py-2">
+                Contribute
+              </Link>
+              <Link href="/explore" className="bg-green-500 px-4 py-2 rounded-lg text-sm font-semibold">
+                Explore
+              </Link>
+            </div>
           </div>
         </nav>
 
@@ -60,7 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <span className="text-lg font-bold text-white">TRAILVIEW</span>
                 </div>
                 <p className="text-sm leading-relaxed">
-                  GPS-synced trail videos for every outdoor adventure. See the trail before you ride.
+                  GPS-synced trail videos for every outdoor activity. See the trail before you go.
                 </p>
               </div>
               <div>
@@ -85,7 +90,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <h4 className="text-white font-semibold text-sm mb-3">Platform</h4>
                 <ul className="space-y-2 text-sm">
                   <li><Link href="/#how-it-works" className="hover:text-white transition-colors">How It Works</Link></li>
-                  <li><Link href="/#contributors" className="hover:text-white transition-colors">Contribute</Link></li>
+                  <li><Link href="/contribute" className="hover:text-white transition-colors">Contribute</Link></li>
                   <li><Link href="/trail" className="hover:text-white transition-colors">GPS Sync Demo</Link></li>
                 </ul>
               </div>
