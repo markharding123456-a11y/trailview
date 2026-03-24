@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>TrailView — GPS-Synced Trail Player</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--brand:#1A3550;--mid:#2B5A82;--green:#22c55e;--orange:#ff6b00;--bg:#0a0a0a}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:#fff;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* TOP NAV */
+.topnav{background:var(--brand);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;z-index:10}
+.topnav .logo{font-weight:800;font-size:16px;letter-spacing:1px}
+.topnav .trail-name{font-size:15px;font-weight:600;opacity:.9;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.topnav .share{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer}
+.topnav .share:hover{background:rgba(255,255,255,.2)}
+
+/* VIDEO AREA */
+.video-area{position:relative;background:#000;flex:1.2;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.video-sim{width:100%;height:100%;position:relative}
+.video-sim canvas{width:100%;height:100%;display:block}
+
+/* SPEED + ELEVATION OVERLAY */
+.hud{position:absolute;top:12px;left:12px;display:flex;gap:8px;z-index:5}
+.hud-card{background:rgba(0,0,0,.65);backdrop-filter:blur(8px);border-radius:10px;padding:8px 14px;text-align:center}
+.hud-value{font-size:24px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.hud-label{font-size:10px;opacity:.6;margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.hud-value.speed{color:var(--orange)}
+.hud-value.ele{color:#60a5fa}
+.hud-value.dist{color:var(--green)}
+
+/* CONTROLS */
+.controls{background:#111;padding:8px 16px 6px;flex-shrink:0}
+.scrub{width:100%;height:6px;background:#333;border-radius:3px;cursor:pointer;position:relative;margin-bottom:6px}
+.scrub-fill{height:100%;background:var(--orange);border-radius:3px;width:0;pointer-events:none}
+.scrub-thumb{position:absolute;top:-5px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.5);pointer-events:none;transform:translateX(-50%);left:0}
+.ctrl-row{display:flex;align-items:center;gap:12px}
+.btn-play{width:36px;height:36px;border-radius:50%;border:none;background:var(--orange);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.btn-play:hover{background:#e65c00}
+.time{font-size:12px;color:#888;font-variant-numeric:tabular-nums;min-width:90px}
+
+/* MAP */
+.map-area{flex:1;min-height:0;position:relative}
+#syncMap{width:100%;height:100%}
+.gps-dot{width:18px;height:18px;background:var(--orange);border:3px solid #fff;border-radius:50%;box-shadow:0 0 12px rgba(255,107,0,.6),0 0 30px rgba(255,107,0,.2)}
+
+/* ELEVATION PROFILE */
+.elevation-wrap{background:#111;padding:8px 16px 10px;flex-shrink:0;height:80px;position:relative}
+.elevation-label{position:absolute;top:4px;left:16px;font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.5px}
+.elevation-canvas{width:100%;height:60px;display:block}
+
+/* DETAILS PANEL (collapsed by default) */
+.details-toggle{background:#1a1a1a;padding:8px 16px;text-align:center;cursor:pointer;font-size:12px;color:#666;flex-shrink:0;border-top:1px solid #222}
+.details-toggle:hover{color:#999}
+.details{background:#111;padding:0 16px;max-height:0;overflow:hidden;transition:max-height .3s;flex-shrink:0}
+.details.open{max-height:300px;padding:12px 16px}
+.details h3{font-size:15px;font-weight:700;margin-bottom:8px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.detail-item{font-size:12px;color:#888}
+.detail-item strong{color:#ccc;display:block;font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.disclaimer{font-size:10px;color:#555;margin-top:10px;padding-top:8px;border-top:1px solid #222}
+
+/* RESPONSIVE */
+@media(min-width:768px){
+  body{flex-direction:row;flex-wrap:wrap}
+  .topnav{width:100%;flex:none}
+  .left-col{flex:1.1;display:flex;flex-direction:column;min-width:0}
+  .right-col{flex:1;display:flex;flex-direction:column;min-width:0}
+  .video-area{flex:1}
+  .map-area{flex:1}
+  .elevation-wrap{flex:none}
+  .details,.details-toggle{display:none}
+}
+
+.toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:var(--brand);padding:10px 24px;border-radius:10px;font-size:14px;font-weight:600;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <span class="logo">TRAILVIEW</span>
+  <span class="trail-name" id="trailName">Top of the World — Whistler</span>
+  <button class="share" id="btnShare">Share</button>
+</nav>
+
+<div class="left-col">
+  <!-- VIDEO -->
+  <div class="video-area">
+    <div class="hud">
+      <div class="hud-card"><div class="hud-value speed" id="hudSpeed">0</div><div class="hud-label">km/h</div></div>
+      <div class="hud-card"><div class="hud-value ele" id="hudEle">0</div><div class="hud-label">elevation m</div></div>
+      <div class="hud-card"><div class="hud-value dist" id="hudDist">0.0</div><div class="hud-label">km</div></div>
+    </div>
+    <div class="video-sim"><canvas id="vidCanvas"></canvas></div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <div class="scrub" id="scrub">
+      <div class="scrub-fill" id="scrubFill"></div>
+      <div class="scrub-thumb" id="scrubThumb"></div>
+    </div>
+    <div class="ctrl-row">
+      <button class="btn-play" id="btnPlay">&#9654;</button>
+      <div class="time"><span id="timeCurrent">0:00</span> / <span id="timeTotal">0:00</span></div>
+    </div>
+  </div>
+
+  <!-- ELEVATION PROFILE -->
+  <div class="elevation-wrap">
+    <span class="elevation-label">Elevation Profile</span>
+    <canvas class="elevation-canvas" id="eleCanvas"></canvas>
+  </div>
+</div>
+
+<div class="right-col">
+  <!-- MAP -->
+  <div class="map-area"><div id="syncMap"></div></div>
+</div>
+
+<!-- DETAILS -->
+<div class="details-toggle" id="detailsToggle">Trail Details &#9660;</div>
+<div class="details" id="detailsPanel">
+  <h3>Top of the World</h3>
+  <div class="detail-grid">
+    <div class="detail-item"><strong>Distance</strong>12.4 km</div>
+    <div class="detail-item"><strong>Elevation</strong>487m gain</div>
+    <div class="detail-item"><strong>Difficulty</strong>Blue — Intermediate</div>
+    <div class="detail-item"><strong>Surface</strong>Singletrack</div>
+    <div class="detail-item"><strong>Season</strong>Summer / Fall</div>
+    <div class="detail-item"><strong>Filmed</strong>March 18, 2026</div>
+  </div>
+  <div class="disclaimer">Trail conditions change. This video was filmed March 18, 2026. Verify current conditions before riding.</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// SAMPLE SYNC MANIFEST — Top of the World, Whistler
+// 480 seconds (8 minutes) of simulated trail ride
+// ══════════════════════════════════════════
+const DURATION = 480;
+const manifest = [];
+
+// Generate a realistic Whistler trail path
+// Start: Roundhouse Lodge area, traverse alpine, descend
+const baseLat = 50.0590, baseLng = -122.9530;
+const segments = [
+  // Climb through alpine (0-120s)
+  {dur:120,dLat:0.008,dLng:0.004,startEle:1800,endEle:2080,curve:0.3},
+  // Ridge traverse (120-240s)
+  {dur:120,dLat:0.006,dLng:0.008,startEle:2080,endEle:2050,curve:-0.2},
+  // Descent begins (240-360s)
+  {dur:120,dLat:0.004,dLng:0.006,startEle:2050,endEle:1650,curve:0.4},
+  // Fast descent to finish (360-480s)
+  {dur:120,dLat:0.003,dLng:0.004,startEle:1650,endEle:1340,curve:-0.3},
+];
+
+let cumLat = baseLat, cumLng = baseLng, cumDist = 0;
+let prevLat = baseLat, prevLng = baseLng;
+
+segments.forEach((seg, si) => {
+  const startT = si * 120;
+  for (let i = 0; i <= seg.dur; i++) {
+    const t = startT + i;
+    if (t > DURATION) break;
+    const frac = i / seg.dur;
+    // Add some natural winding
+    const wobble = Math.sin(frac * Math.PI * 4 + si * 2) * 0.001 * seg.curve;
+    const lat = cumLat + seg.dLat * frac + wobble;
+    const lng = cumLng + seg.dLng * frac + Math.cos(frac * Math.PI * 3 + si) * 0.0008;
+    const ele = seg.startEle + (seg.endEle - seg.startEle) * frac + Math.sin(frac * Math.PI * 6) * 15;
+
+    // Distance
+    const R = 6371;
+    const dLatR = (lat - prevLat) * Math.PI / 180;
+    const dLngR = (lng - prevLng) * Math.PI / 180;
+    const a = Math.sin(dLatR/2)**2 + Math.cos(prevLat*Math.PI/180)*Math.cos(lat*Math.PI/180)*Math.sin(dLngR/2)**2;
+    const segDist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    cumDist += segDist;
+    const spd = Math.round(segDist * 3600 * 10) / 10;
+
+    manifest.push({ t, lat: Math.round(lat*1e6)/1e6, lng: Math.round(lng*1e6)/1e6, ele: Math.round(ele), spd: Math.min(spd, 55) });
+    prevLat = lat; prevLng = lng;
+  }
+  cumLat += seg.dLat;
+  cumLng += seg.dLng;
+});
+
+// Trim to exact duration
+while (manifest.length > DURATION + 1) manifest.pop();
+
+const totalDistKm = Math.round(cumDist * 100) / 100;
+
+// ══════════════════════════════════════════
+// MAP
+// ══════════════════════════════════════════
+const map = L.map("syncMap", { zoomControl: false }).setView([manifest[0].lat, manifest[0].lng], 14);
+L.control.zoom({ position: "bottomright" }).addTo(map);
+L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", { maxZoom: 17 }).addTo(map);
+
+const trailCoords = manifest.map(p => [p.lat, p.lng]);
+const trailLine = L.polyline(trailCoords, { color: "#3b82f6", weight: 4, opacity: 0.7 }).addTo(map);
+map.fitBounds(trailLine.getBounds(), { padding: [40, 40] });
+
+const dotIcon = L.divIcon({ className: "", html: '<div class="gps-dot"></div>', iconSize: [18, 18], iconAnchor: [9, 9] });
+const gpsDot = L.marker([manifest[0].lat, manifest[0].lng], { icon: dotIcon }).addTo(map);
+
+// Trail start/end markers
+L.circleMarker([manifest[0].lat, manifest[0].lng], { radius: 6, color: "#22c55e", fillColor: "#22c55e", fillOpacity: 1, weight: 2 }).addTo(map).bindTooltip("Start", { permanent: false });
+L.circleMarker([manifest[manifest.length-1].lat, manifest[manifest.length-1].lng], { radius: 6, color: "#ef4444", fillColor: "#ef4444", fillOpacity: 1, weight: 2 }).addTo(map).bindTooltip("Finish", { permanent: false });
+
+// Click trail line to seek
+map.on("click", (e) => {
+  let minD = Infinity, bestT = 0;
+  manifest.forEach((p) => {
+    const d = Math.sqrt((p.lat - e.latlng.lat) ** 2 + (p.lng - e.latlng.lng) ** 2);
+    if (d < minD) { minD = d; bestT = p.t; }
+  });
+  if (minD < 0.01) { seekTo(bestT); }
+});
+
+// ══════════════════════════════════════════
+// ELEVATION PROFILE
+// ══════════════════════════════════════════
+const eleCanvas = document.getElementById("eleCanvas");
+const eleCtx = eleCanvas.getContext("2d");
+function drawElevation(currentT) {
+  const w = eleCanvas.clientWidth * 2;
+  const h = eleCanvas.clientHeight * 2;
+  eleCanvas.width = w; eleCanvas.height = h;
+
+  const eles = manifest.map(p => p.ele);
+  const minE = Math.min(...eles) - 20;
+  const maxE = Math.max(...eles) + 20;
+  const range = maxE - minE;
+
+  // Fill area
+  eleCtx.beginPath();
+  eleCtx.moveTo(0, h);
+  manifest.forEach((p, i) => {
+    const x = (i / manifest.length) * w;
+    const y = h - ((p.ele - minE) / range) * h * 0.85;
+    eleCtx.lineTo(x, y);
+  });
+  eleCtx.lineTo(w, h);
+  eleCtx.closePath();
+  const grad = eleCtx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, "rgba(59,122,181,0.3)");
+  grad.addColorStop(1, "rgba(59,122,181,0.05)");
+  eleCtx.fillStyle = grad;
+  eleCtx.fill();
+
+  // Line
+  eleCtx.beginPath();
+  manifest.forEach((p, i) => {
+    const x = (i / manifest.length) * w;
+    const y = h - ((p.ele - minE) / range) * h * 0.85;
+    i === 0 ? eleCtx.moveTo(x, y) : eleCtx.lineTo(x, y);
+  });
+  eleCtx.strokeStyle = "#3b7ab5";
+  eleCtx.lineWidth = 2;
+  eleCtx.stroke();
+
+  // Position marker
+  const cx = (currentT / DURATION) * w;
+  const cIdx = Math.min(Math.floor(currentT), manifest.length - 1);
+  const cy = h - ((manifest[cIdx].ele - minE) / range) * h * 0.85;
+  eleCtx.beginPath();
+  eleCtx.arc(cx, cy, 6, 0, Math.PI * 2);
+  eleCtx.fillStyle = "#ff6b00";
+  eleCtx.fill();
+  eleCtx.strokeStyle = "#fff";
+  eleCtx.lineWidth = 2;
+  eleCtx.stroke();
+}
+
+// ══════════════════════════════════════════
+// VIDEO SIMULATION (Canvas POV effect)
+// ══════════════════════════════════════════
+const vidCanvas = document.getElementById("vidCanvas");
+const vCtx = vidCanvas.getContext("2d");
+function drawFrame(t, speed) {
+  const w = vidCanvas.clientWidth * 2;
+  const h = vidCanvas.clientHeight * 2;
+  if (vidCanvas.width !== w || vidCanvas.height !== h) { vidCanvas.width = w; vidCanvas.height = h; }
+
+  // Sky gradient
+  const skyGrad = vCtx.createLinearGradient(0, 0, 0, h * 0.45);
+  skyGrad.addColorStop(0, "#87CEEB");
+  skyGrad.addColorStop(1, "#B0D4F1");
+  vCtx.fillStyle = skyGrad;
+  vCtx.fillRect(0, 0, w, h * 0.45);
+
+  // Mountains
+  const currentEle = manifest[Math.min(Math.floor(t), manifest.length-1)]?.ele || 1800;
+  const mtnHeight = 0.15 + (currentEle - 1300) / 3000;
+  vCtx.fillStyle = "#5B7B5B";
+  vCtx.beginPath();
+  vCtx.moveTo(0, h * 0.45);
+  for (let x = 0; x <= w; x += 20) {
+    const n = Math.sin(x * 0.003 + t * 0.002) * 0.08 + Math.sin(x * 0.007 + t * 0.001) * 0.04;
+    vCtx.lineTo(x, h * (0.45 - mtnHeight - n));
+  }
+  vCtx.lineTo(w, h * 0.45);
+  vCtx.fill();
+
+  // Ground / trail
+  const groundGrad = vCtx.createLinearGradient(0, h * 0.45, 0, h);
+  groundGrad.addColorStop(0, "#6B8E6B");
+  groundGrad.addColorStop(0.3, "#5A7D5A");
+  groundGrad.addColorStop(1, "#4A6D4A");
+  vCtx.fillStyle = groundGrad;
+  vCtx.fillRect(0, h * 0.45, w, h * 0.55);
+
+  // Trail path (perspective lines converging to center)
+  const cx = w / 2 + Math.sin(t * 0.05) * w * 0.03;
+  const horizon = h * 0.45;
+  vCtx.strokeStyle = "#8B7355";
+  vCtx.lineWidth = 3;
+
+  // Left edge
+  vCtx.beginPath();
+  vCtx.moveTo(cx - 4, horizon);
+  vCtx.lineTo(cx - w * 0.25 + Math.sin(t * 0.03) * 20, h);
+  vCtx.stroke();
+
+  // Right edge
+  vCtx.beginPath();
+  vCtx.moveTo(cx + 4, horizon);
+  vCtx.lineTo(cx + w * 0.25 + Math.sin(t * 0.03 + 1) * 20, h);
+  vCtx.stroke();
+
+  // Trail surface
+  vCtx.fillStyle = "rgba(139,115,85,0.3)";
+  vCtx.beginPath();
+  vCtx.moveTo(cx - 4, horizon);
+  vCtx.lineTo(cx - w * 0.25 + Math.sin(t * 0.03) * 20, h);
+  vCtx.lineTo(cx + w * 0.25 + Math.sin(t * 0.03 + 1) * 20, h);
+  vCtx.lineTo(cx + 4, horizon);
+  vCtx.fill();
+
+  // Trees (simple shapes moving past)
+  for (let i = 0; i < 8; i++) {
+    const treeT = ((t * 0.5 + i * 60) % 480) / 480;
+    const treeX = (i % 2 === 0 ? -1 : 1) * (w * 0.3 + i * w * 0.05);
+    const scale = treeT;
+    const tx = cx + treeX * scale;
+    const ty = horizon + (h - horizon) * scale * 0.6;
+    const th = 40 + scale * 80;
+    if (scale > 0.1 && scale < 0.9) {
+      vCtx.fillStyle = "#2D5A2D";
+      vCtx.beginPath();
+      vCtx.moveTo(tx, ty - th);
+      vCtx.lineTo(tx - th * 0.3, ty);
+      vCtx.lineTo(tx + th * 0.3, ty);
+      vCtx.fill();
+      vCtx.fillStyle = "#5C4033";
+      vCtx.fillRect(tx - 3, ty, 6, th * 0.15);
+    }
+  }
+
+  // Speed blur effect
+  if (speed > 20) {
+    const blur = Math.min((speed - 20) / 40, 0.3);
+    vCtx.fillStyle = `rgba(0,0,0,${blur * 0.15})`;
+    // Radial lines from center
+    for (let a = 0; a < Math.PI * 2; a += 0.3) {
+      vCtx.beginPath();
+      vCtx.moveTo(cx + Math.cos(a) * w * 0.4, horizon + Math.sin(a) * h * 0.4);
+      vCtx.lineTo(cx + Math.cos(a) * w * 0.55, horizon + Math.sin(a) * h * 0.55);
+      vCtx.lineWidth = 1;
+      vCtx.strokeStyle = `rgba(255,255,255,${blur * 0.08})`;
+      vCtx.stroke();
+    }
+  }
+
+  // "SIMULATED VIDEO" watermark
+  vCtx.fillStyle = "rgba(255,255,255,0.12)";
+  vCtx.font = `${Math.round(w * 0.02)}px sans-serif`;
+  vCtx.textAlign = "center";
+  vCtx.fillText("SIMULATED POV — Replace with real GoPro footage", w / 2, h * 0.92);
+}
+
+// ══════════════════════════════════════════
+// PLAYBACK ENGINE
+// ══════════════════════════════════════════
+let currentTime = 0;
+let playing = false;
+let lastFrame = 0;
+
+function seekTo(t) {
+  currentTime = Math.max(0, Math.min(DURATION, t));
+  updateDisplay();
+}
+
+function updateDisplay() {
+  const idx = Math.min(Math.floor(currentTime), manifest.length - 1);
+  const p = manifest[idx];
+  if (!p) return;
+
+  // GPS dot
+  gpsDot.setLatLng([p.lat, p.lng]);
+
+  // HUD
+  document.getElementById("hudSpeed").textContent = Math.round(p.spd);
+  document.getElementById("hudEle").textContent = p.ele;
+  const distSoFar = manifest.slice(0, idx + 1).reduce((s, pt, i) => {
+    if (i === 0) return 0;
+    const prev = manifest[i-1];
+    const dLat = (pt.lat - prev.lat) * Math.PI / 180;
+    const dLng = (pt.lng - prev.lng) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(prev.lat*Math.PI/180)*Math.cos(pt.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+    return s + 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }, 0);
+  document.getElementById("hudDist").textContent = (Math.round(distSoFar * 10) / 10).toFixed(1);
+
+  // Scrub
+  const pct = (currentTime / DURATION) * 100;
+  document.getElementById("scrubFill").style.width = pct + "%";
+  document.getElementById("scrubThumb").style.left = pct + "%";
+
+  // Time display
+  const fmt = (s) => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`;
+  document.getElementById("timeCurrent").textContent = fmt(currentTime);
+  document.getElementById("timeTotal").textContent = fmt(DURATION);
+
+  // Video sim
+  drawFrame(currentTime, p.spd);
+
+  // Elevation
+  drawElevation(currentTime);
+
+  // Pan map to keep dot visible
+  if (!map.getBounds().contains([p.lat, p.lng])) {
+    map.panTo([p.lat, p.lng], { animate: true, duration: 0.5 });
+  }
+}
+
+function tick(ts) {
+  if (playing) {
+    if (lastFrame) {
+      const dt = (ts - lastFrame) / 1000;
+      currentTime += dt;
+      if (currentTime >= DURATION) { currentTime = DURATION; playing = false; document.getElementById("btnPlay").innerHTML = "&#9654;"; }
+    }
+    lastFrame = ts;
+    updateDisplay();
+    requestAnimationFrame(tick);
+  }
+}
+
+// Play/Pause
+document.getElementById("btnPlay").addEventListener("click", () => {
+  if (currentTime >= DURATION) currentTime = 0;
+  playing = !playing;
+  document.getElementById("btnPlay").innerHTML = playing ? "&#9646;&#9646;" : "&#9654;";
+  if (playing) { lastFrame = 0; requestAnimationFrame(tick); }
+});
+
+// Scrub interaction
+const scrub = document.getElementById("scrub");
+function handleScrub(e) {
+  const rect = scrub.getBoundingClientRect();
+  const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  seekTo((x / rect.width) * DURATION);
+}
+scrub.addEventListener("mousedown", (e) => {
+  const wasPl = playing; playing = false; handleScrub(e);
+  const mv = (e2) => handleScrub(e2);
+  const up = () => { document.removeEventListener("mousemove", mv); document.removeEventListener("mouseup", up); if (wasPl) { playing = true; lastFrame = 0; requestAnimationFrame(tick); } };
+  document.addEventListener("mousemove", mv); document.addEventListener("mouseup", up);
+});
+scrub.addEventListener("touchstart", (e) => {
+  const wasPl = playing; playing = false; handleScrub(e);
+  const mv = (e2) => handleScrub(e2);
+  const up = () => { scrub.removeEventListener("touchmove", mv); scrub.removeEventListener("touchend", up); if (wasPl) { playing = true; lastFrame = 0; requestAnimationFrame(tick); } };
+  scrub.addEventListener("touchmove", mv); scrub.addEventListener("touchend", up);
+}, { passive: true });
+
+// Details toggle
+document.getElementById("detailsToggle").addEventListener("click", () => {
+  document.getElementById("detailsPanel").classList.toggle("open");
+  document.getElementById("detailsToggle").innerHTML = document.getElementById("detailsPanel").classList.contains("open") ? "Trail Details &#9650;" : "Trail Details &#9660;";
+});
+
+// Share
+document.getElementById("btnShare").addEventListener("click", () => {
+  navigator.clipboard?.writeText(window.location.href).then(() => {
+    const t = document.getElementById("toast"); t.textContent = "Link copied!"; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2000);
+  });
+});
+
+// Keyboard
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space") { e.preventDefault(); document.getElementById("btnPlay").click(); }
+  if (e.code === "ArrowRight") seekTo(currentTime + 5);
+  if (e.code === "ArrowLeft") seekTo(currentTime - 5);
+});
+
+// Initial render
+updateDisplay();
+</script>
+</body>
+</html>

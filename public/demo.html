@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TrailView — Preview What Users See</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--brand:#1A3550;--mid:#2B5A82;--light:#3B7AB5;--green:#22c55e;--blue:#3b82f6;--black:#1e293b;--red:#ef4444;--bg:#F4F7FA}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);overflow:hidden;height:100vh;width:100vw}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--brand);color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.nav-logo{font-size:20px;font-weight:800;letter-spacing:1px}
+.nav-tag{font-size:10px;background:var(--light);padding:2px 8px;border-radius:20px;margin-left:8px;opacity:.8}
+
+/* SEARCH BAR */
+.search-wrap{position:fixed;top:56px;left:12px;right:12px;z-index:900;display:flex;flex-direction:column;gap:8px;padding-top:10px}
+.search-bar{background:#fff;border-radius:12px;padding:12px 16px;font-size:15px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.15);width:100%;outline:none}
+.search-bar:focus{box-shadow:0 2px 16px rgba(43,90,130,.3)}
+.filters{display:flex;gap:6px;flex-wrap:wrap;padding:0 2px}
+.chip{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid transparent;transition:all .2s;user-select:none}
+.chip-activity{background:#fff;color:#555;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.chip-activity.active{background:var(--mid);color:#fff;box-shadow:0 2px 8px rgba(43,90,130,.3)}
+.chip-diff{background:#fff;color:#555;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.chip-diff.active{color:#fff}
+.chip-diff[data-d="green"].active{background:var(--green)}
+.chip-diff[data-d="blue"].active{background:var(--blue)}
+.chip-diff[data-d="black"].active{background:var(--black)}
+.chip-diff[data-d="expert"].active{background:var(--red)}
+
+/* MAP */
+#map{position:fixed;top:0;left:0;right:0;bottom:0;z-index:1}
+
+/* TRAIL CARD (bottom sheet) */
+.card-overlay{position:fixed;bottom:0;left:0;right:0;z-index:2000;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);pointer-events:none}
+.card-overlay.show{transform:translateY(0);pointer-events:auto}
+.card{background:#fff;border-radius:20px 20px 0 0;padding:20px 20px 28px;box-shadow:0 -4px 24px rgba(0,0,0,.15);max-height:55vh;overflow-y:auto}
+.card-handle{width:40px;height:4px;background:#ddd;border-radius:4px;margin:0 auto 16px}
+.card-name{font-size:22px;font-weight:700;color:var(--brand);margin-bottom:4px}
+.card-badges{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;color:#fff}
+.badge-green{background:var(--green)}.badge-blue{background:var(--blue)}.badge-black{background:var(--black)}.badge-expert{background:var(--red)}
+.activity-badge{background:#f0f0f0;color:#555;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.card-stats{display:flex;gap:16px;margin-bottom:14px;color:#666;font-size:13px}
+.card-stats span{display:flex;align-items:center;gap:4px}
+.card-date{font-size:12px;color:#999;margin-bottom:16px}
+.card-thumb{width:100%;height:160px;background:linear-gradient(135deg,#1a3550 0%,#2b5a82 50%,#3b7ab5 100%);border-radius:12px;margin-bottom:16px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;opacity:.9}
+.btn-watch{display:block;width:100%;padding:16px;background:var(--green);color:#fff;border:none;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;text-align:center;box-shadow:0 4px 12px rgba(34,197,94,.3);transition:all .2s}
+.btn-watch:hover{background:#16a34a;transform:translateY(-1px)}
+.btn-save{position:absolute;top:20px;right:20px;background:none;border:none;font-size:24px;cursor:pointer;color:#ccc;transition:color .2s}
+.btn-save:hover{color:var(--red)}
+
+/* VIDEO PAGE */
+.video-page{position:fixed;top:0;left:0;right:0;bottom:0;z-index:3000;background:var(--bg);transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+.video-page.show{transform:translateX(0)}
+.video-nav{background:var(--brand);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.btn-back{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:4px 8px}
+.video-nav-title{font-size:16px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.video-container{flex:3;background:#000;position:relative;display:flex;align-items:center;justify-content:center;min-height:0}
+.video-placeholder{color:#fff;text-align:center;padding:20px}
+.video-placeholder .play-btn{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.2);border:3px solid #fff;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;cursor:pointer;transition:all .2s}
+.video-placeholder .play-btn:hover{background:rgba(255,255,255,.3);transform:scale(1.05)}
+.video-placeholder .play-btn::after{content:"";border-left:20px solid #fff;border-top:12px solid transparent;border-bottom:12px solid transparent;margin-left:4px}
+.scrub-bar{position:absolute;bottom:0;left:0;right:0;height:4px;background:rgba(255,255,255,.2)}
+.scrub-fill{height:100%;background:var(--green);transition:width .1s linear;width:0}
+.scrub-handle{position:absolute;top:-6px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3);transform:translateX(-50%);cursor:pointer}
+#sync-map{flex:2;min-height:0}
+.trail-details{padding:16px;background:#fff;flex-shrink:0;border-top:1px solid #eee;max-height:30vh;overflow-y:auto}
+.trail-details h3{font-size:16px;font-weight:700;color:var(--brand);margin-bottom:8px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.detail-item{font-size:13px;color:#666}
+.detail-item strong{color:#333;display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.disclaimer{font-size:11px;color:#999;margin-top:12px;padding-top:8px;border-top:1px solid #f0f0f0}
+.share-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--bg);border:1px solid #ddd;border-radius:8px;font-size:12px;font-weight:600;color:#555;cursor:pointer;margin-top:8px}
+.share-btn:hover{background:#e8ecf0}
+
+/* GPS dot */
+.gps-dot{width:16px;height:16px;background:#ff6b00;border:3px solid #fff;border-radius:50%;box-shadow:0 0 8px rgba(255,107,0,.5),0 0 20px rgba(255,107,0,.3)}
+
+/* RESPONSIVE */
+@media(min-width:768px){
+  .video-page{flex-direction:row;flex-wrap:wrap}
+  .video-nav{width:100%;flex:none}
+  .video-container{flex:1;min-width:55%}
+  #sync-map{flex:1;min-width:45%;min-height:300px}
+  .trail-details{width:100%;flex:none;max-height:200px}
+}
+
+/* Leaflet popup override */
+.leaflet-popup-content-wrapper{border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.leaflet-popup-content{margin:12px 14px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--brand);color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div style="display:flex;align-items:center">
+    <span class="nav-logo">TRAILVIEW</span>
+    <span class="nav-tag">End User Preview</span>
+  </div>
+  <span style="font-size:12px;opacity:.6">What your users see</span>
+</nav>
+
+<!-- SEARCH -->
+<div class="search-wrap">
+  <input class="search-bar" placeholder="Search trails or locations..." id="searchInput"/>
+  <div class="filters" id="filters">
+    <span class="chip chip-activity active" data-a="all">All</span>
+    <span class="chip chip-activity" data-a="MTB">MTB</span>
+    <span class="chip chip-activity" data-a="Moto">Moto</span>
+    <span class="chip chip-activity" data-a="ATV">ATV</span>
+    <span class="chip chip-activity" data-a="Ski">Ski</span>
+    <span class="chip chip-activity" data-a="Hike">Hike</span>
+    <span style="width:8px"></span>
+    <span class="chip chip-diff" data-d="green">Green</span>
+    <span class="chip chip-diff" data-d="blue">Blue</span>
+    <span class="chip chip-diff" data-d="black">Black</span>
+    <span class="chip chip-diff" data-d="expert">Expert</span>
+  </div>
+</div>
+
+<!-- MAP -->
+<div id="map"></div>
+
+<!-- TRAIL CARD (bottom sheet) -->
+<div class="card-overlay" id="cardOverlay">
+  <div class="card" id="trailCard">
+    <div class="card-handle"></div>
+    <button class="btn-save" id="btnSave" title="Save trail">&#9825;</button>
+    <div class="card-name" id="cardName"></div>
+    <div class="card-badges" id="cardBadges"></div>
+    <div class="card-stats" id="cardStats"></div>
+    <div class="card-date" id="cardDate"></div>
+    <div class="card-thumb" id="cardThumb">First-person trail preview</div>
+    <button class="btn-watch" id="btnWatch">Watch Trail</button>
+  </div>
+</div>
+
+<!-- VIDEO PAGE -->
+<div class="video-page" id="videoPage">
+  <div class="video-nav">
+    <button class="btn-back" id="btnVideoBack">&larr;</button>
+    <div class="video-nav-title" id="videoTitle"></div>
+    <button class="share-btn" id="btnShare" style="color:#fff;background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2)">Share</button>
+  </div>
+  <div class="video-container" id="videoContainer">
+    <div class="video-placeholder">
+      <div class="play-btn" id="playBtn"></div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:4px">First-Person Trail Video</div>
+      <div style="font-size:12px;opacity:.6">GPS-synced POV footage plays here</div>
+    </div>
+    <div class="scrub-bar">
+      <div class="scrub-fill" id="scrubFill"></div>
+      <div class="scrub-handle" id="scrubHandle" style="left:0"></div>
+    </div>
+  </div>
+  <div id="sync-map"></div>
+  <div class="trail-details" id="trailDetails"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+// SAMPLE TRAIL DATA — BC TRAILS
+// ══════════════════════════════════════
+const TRAILS = [
+  { id:1, name:"Top of the World", region:"Whistler",difficulty:"blue",activities:["MTB"],distance:12.4,elevation:487,lat:50.0845,lng:-122.9510,
+    path:[[50.0845,-122.9510],[50.0870,-122.9480],[50.0900,-122.9440],[50.0935,-122.9400],[50.0960,-122.9360],[50.0985,-122.9320],[50.1010,-122.9285],[50.1040,-122.9250],[50.1065,-122.9220],[50.1090,-122.9190]],
+    date:"Mar 18, 2026",surface:"Singletrack",season:"Summer"},
+  { id:2, name:"A-Line", region:"Whistler",difficulty:"black",activities:["MTB"],distance:3.2,elevation:340,lat:50.0862,lng:-122.9565,
+    path:[[50.0862,-122.9565],[50.0850,-122.9545],[50.0835,-122.9530],[50.0820,-122.9510],[50.0805,-122.9495],[50.0790,-122.9480],[50.0775,-122.9470],[50.0760,-122.9455]],
+    date:"Mar 18, 2026",surface:"Bike Park",season:"Summer"},
+  { id:3, name:"Dirt Merchant", region:"Whistler",difficulty:"blue",activities:["MTB"],distance:1.8,elevation:180,lat:50.0870,-122.9540,lng:-122.9540,
+    path:[[50.0870,-122.9540],[50.0858,-122.9525],[50.0845,-122.9510],[50.0832,-122.9498],[50.0820,-122.9485]],
+    date:"Mar 18, 2026",surface:"Bike Park",season:"Summer"},
+  { id:4, name:"Goat Peak", region:"Kootenays",difficulty:"blue",activities:["MTB","Hike"],distance:8.7,elevation:620,lat:49.0450,lng:-118.4200,
+    path:[[49.0450,-118.4200],[49.0480,-118.4170],[49.0510,-118.4140],[49.0540,-118.4110],[49.0570,-118.4080],[49.0600,-118.4050],[49.0630,-118.4020],[49.0660,-118.3990]],
+    date:"Mar 15, 2026",surface:"Singletrack",season:"Summer/Fall"},
+  { id:5, name:"Phoenix Trail", region:"Kootenays",difficulty:"green",activities:["MTB","Hike"],distance:5.2,elevation:220,lat:49.0510,lng:-118.4350,
+    path:[[49.0510,-118.4350],[49.0530,-118.4330],[49.0550,-118.4310],[49.0570,-118.4290],[49.0590,-118.4270],[49.0610,-118.4250]],
+    date:"Mar 15, 2026",surface:"Doubletrack",season:"Year-round"},
+  { id:6, name:"Kootenay Crest Moto", region:"Kootenays",difficulty:"black",activities:["Moto"],distance:22.5,elevation:890,lat:49.0700,lng:-118.3900,
+    path:[[49.0700,-118.3900],[49.0740,-118.3850],[49.0780,-118.3800],[49.0820,-118.3750],[49.0860,-118.3700],[49.0900,-118.3650],[49.0940,-118.3600]],
+    date:"Mar 16, 2026",surface:"Gravel/Rock",season:"Summer"},
+  { id:7, name:"Myra Canyon Trestles", region:"Okanagan",difficulty:"green",activities:["MTB","Hike"],distance:14.2,elevation:180,lat:49.8550,lng:-119.3830,
+    path:[[49.8550,-119.3830],[49.8580,-119.3790],[49.8610,-119.3750],[49.8640,-119.3710],[49.8670,-119.3670],[49.8700,-119.3630],[49.8730,-119.3590],[49.8760,-119.3550]],
+    date:"Mar 14, 2026",surface:"Rail Trail",season:"Year-round"},
+  { id:8, name:"Crawford Trails", region:"Okanagan",difficulty:"blue",activities:["MTB"],distance:6.8,elevation:310,lat:49.8800,lng:-119.4200,
+    path:[[49.8800,-119.4200],[49.8825,-119.4170],[49.8850,-119.4140],[49.8875,-119.4110],[49.8900,-119.4080]],
+    date:"Mar 14, 2026",surface:"Singletrack",season:"Summer/Fall"},
+  { id:9, name:"Fromme Mountain", region:"North Shore",difficulty:"black",activities:["MTB"],distance:4.5,elevation:510,lat:49.3650,lng:-123.0750,
+    path:[[49.3650,-123.0750],[49.3635,-123.0730],[49.3620,-123.0710],[49.3605,-123.0690],[49.3590,-123.0670],[49.3575,-123.0650]],
+    date:"Mar 12, 2026",surface:"Singletrack/Technical",season:"Year-round"},
+  { id:10, name:"Mt Seymour - CBC", region:"North Shore",difficulty:"expert",activities:["MTB"],distance:2.1,elevation:380,lat:49.3680,lng:-122.9480,
+    path:[[49.3680,-122.9480],[49.3665,-122.9465],[49.3650,-122.9450],[49.3635,-122.9435],[49.3620,-122.9420]],
+    date:"Mar 12, 2026",surface:"Rock/Root/Technical",season:"Summer"},
+  { id:11, name:"Backcountry Ridge ATV", region:"Kamloops",difficulty:"blue",activities:["ATV"],distance:18.3,elevation:440,lat:50.7200,lng:-120.3500,
+    path:[[50.7200,-120.3500],[50.7240,-120.3450],[50.7280,-120.3400],[50.7320,-120.3350],[50.7360,-120.3300],[50.7400,-120.3250]],
+    date:"Mar 20, 2026",surface:"Gravel/Dirt",season:"Summer/Fall"},
+  { id:12, name:"Sun Peaks XC", region:"Kamloops",difficulty:"green",activities:["MTB","Ski"],distance:9.5,elevation:280,lat:50.8830,lng:-119.9000,
+    path:[[50.8830,-119.9000],[50.8860,-119.8960],[50.8890,-119.8920],[50.8920,-119.8880],[50.8950,-119.8840]],
+    date:"Mar 20, 2026",surface:"Groomed",season:"Summer/Winter"},
+  { id:13, name:"Vedder Mountain", region:"Fraser Valley",difficulty:"blue",activities:["MTB","Hike"],distance:7.1,elevation:350,lat:49.1050,lng:-121.9400,
+    path:[[49.1050,-121.9400],[49.1075,-121.9370],[49.1100,-121.9340],[49.1125,-121.9310],[49.1150,-121.9280]],
+    date:"Mar 10, 2026",surface:"Singletrack",season:"Year-round"},
+  { id:14, name:"Elk Mountain Snowmobile", region:"Fraser Valley",difficulty:"black",activities:["Ski"],distance:16.0,elevation:1100,lat:49.1800,lng:-121.8200,
+    path:[[49.1800,-121.8200],[49.1830,-121.8160],[49.1860,-121.8120],[49.1890,-121.8080],[49.1920,-121.8040],[49.1950,-121.8000]],
+    date:"Mar 8, 2026",surface:"Snow",season:"Winter"},
+];
+
+const DIFF_COLOR = {green:"#22c55e",blue:"#3b82f6",black:"#1e293b",expert:"#ef4444"};
+const DIFF_LABEL = {green:"Green - Easy",blue:"Blue - Intermediate",black:"Black - Advanced",expert:"Expert Only"};
+
+// ══════════════════════════════════════
+// MAP SETUP
+// ══════════════════════════════════════
+const map = L.map("map",{zoomControl:false}).setView([49.8,-122.5],6);
+L.control.zoom({position:"bottomright"}).addTo(map);
+L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{
+  maxZoom:17,attribution:'Map: OpenTopoMap'
+}).addTo(map);
+
+let markers = [];
+let lines = [];
+let activeFilter = "all";
+let activeDiff = null;
+
+function renderTrails(filtered){
+  markers.forEach(m=>map.removeLayer(m));
+  lines.forEach(l=>map.removeLayer(l));
+  markers=[];lines=[];
+
+  filtered.forEach(t=>{
+    const color = DIFF_COLOR[t.difficulty];
+    const icon = L.divIcon({
+      className:"",
+      html:`<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2.5px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.3);cursor:pointer"></div>`,
+      iconSize:[14,14],iconAnchor:[7,7]
+    });
+    const m = L.marker([t.lat,t.lng],{icon}).addTo(map);
+    m.on("click",()=>showCard(t));
+    markers.push(m);
+
+    if(t.path&&t.path.length>1){
+      const line = L.polyline(t.path,{color,weight:3,opacity:.7}).addTo(map);
+      line.on("click",()=>showCard(t));
+      lines.push(line);
+    }
+  });
+}
+
+function applyFilters(){
+  let filtered = TRAILS;
+  if(activeFilter!=="all") filtered = filtered.filter(t=>t.activities.includes(activeFilter));
+  if(activeDiff) filtered = filtered.filter(t=>t.difficulty===activeDiff);
+  const q = document.getElementById("searchInput").value.toLowerCase();
+  if(q) filtered = filtered.filter(t=>t.name.toLowerCase().includes(q)||t.region.toLowerCase().includes(q));
+  renderTrails(filtered);
+}
+
+// Filter chips
+document.querySelectorAll(".chip-activity").forEach(c=>{
+  c.addEventListener("click",()=>{
+    document.querySelectorAll(".chip-activity").forEach(x=>x.classList.remove("active"));
+    c.classList.add("active");
+    activeFilter = c.dataset.a;
+    applyFilters();
+  });
+});
+document.querySelectorAll(".chip-diff").forEach(c=>{
+  c.addEventListener("click",()=>{
+    if(c.classList.contains("active")){c.classList.remove("active");activeDiff=null;}
+    else{document.querySelectorAll(".chip-diff").forEach(x=>x.classList.remove("active"));c.classList.add("active");activeDiff=c.dataset.d;}
+    applyFilters();
+  });
+});
+document.getElementById("searchInput").addEventListener("input",applyFilters);
+
+renderTrails(TRAILS);
+
+// ══════════════════════════════════════
+// TRAIL CARD
+// ══════════════════════════════════════
+let currentTrail = null;
+
+function showCard(t){
+  currentTrail = t;
+  const color = DIFF_COLOR[t.difficulty];
+  document.getElementById("cardName").textContent = t.name;
+  document.getElementById("cardBadges").innerHTML =
+    `<span class="badge badge-${t.difficulty}">${DIFF_LABEL[t.difficulty]}</span>`+
+    t.activities.map(a=>`<span class="activity-badge">${a}</span>`).join("");
+  document.getElementById("cardStats").innerHTML =
+    `<span><strong>${t.distance}</strong> km</span>`+
+    `<span><strong>${t.elevation}</strong>m gain</span>`+
+    `<span>${t.region}</span>`;
+  document.getElementById("cardDate").textContent = `Filmed ${t.date}`;
+  document.getElementById("cardThumb").style.background = `linear-gradient(135deg, ${color}40 0%, ${color}90 100%)`;
+  document.getElementById("cardOverlay").classList.add("show");
+  map.flyTo([t.lat,t.lng],12,{duration:0.8});
+}
+
+// Dismiss card
+document.getElementById("cardOverlay").addEventListener("click",(e)=>{
+  if(e.target===document.getElementById("cardOverlay")) document.getElementById("cardOverlay").classList.remove("show");
+});
+document.querySelector(".card-handle").addEventListener("click",()=>{
+  document.getElementById("cardOverlay").classList.remove("show");
+});
+
+// Save button
+document.getElementById("btnSave").addEventListener("click",()=>{
+  const btn = document.getElementById("btnSave");
+  btn.innerHTML = btn.innerHTML==="&#9829;"?"&#9825;":"&#9829;";
+  btn.style.color = btn.innerHTML==="&#9829;"?"var(--red)":"#ccc";
+  showToast(btn.innerHTML==="&#9829;"?"Trail saved!":"Trail unsaved");
+});
+
+// ══════════════════════════════════════
+// VIDEO PAGE
+// ══════════════════════════════════════
+let syncMap = null;
+let gpsDot = null;
+let syncLine = null;
+let animFrame = null;
+let playing = false;
+let progress = 0;
+
+document.getElementById("btnWatch").addEventListener("click",()=>{
+  if(!currentTrail) return;
+  openVideoPage(currentTrail);
+});
+
+function openVideoPage(t){
+  document.getElementById("cardOverlay").classList.remove("show");
+  document.getElementById("videoPage").classList.add("show");
+  document.getElementById("videoTitle").textContent = t.name;
+
+  // Trail details
+  document.getElementById("trailDetails").innerHTML = `
+    <h3>${t.name}</h3>
+    <div class="detail-grid">
+      <div class="detail-item"><strong>Distance</strong>${t.distance} km</div>
+      <div class="detail-item"><strong>Elevation Gain</strong>${t.elevation}m</div>
+      <div class="detail-item"><strong>Surface</strong>${t.surface}</div>
+      <div class="detail-item"><strong>Season</strong>${t.season}</div>
+      <div class="detail-item"><strong>Region</strong>${t.region}</div>
+      <div class="detail-item"><strong>Difficulty</strong>${DIFF_LABEL[t.difficulty]}</div>
+    </div>
+    <button class="share-btn" onclick="copyLink()">&#128279; Share Trail</button>
+    <div class="disclaimer">Trail conditions change. This video was filmed ${t.date}. Verify current conditions before riding. TrailView is not responsible for trail conditions.</div>
+  `;
+
+  // Sync map
+  setTimeout(()=>{
+    if(syncMap){syncMap.remove();syncMap=null;}
+    syncMap = L.map("sync-map",{zoomControl:false}).setView([t.lat,t.lng],13);
+    L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17}).addTo(syncMap);
+
+    const color = DIFF_COLOR[t.difficulty];
+    if(t.path&&t.path.length>1){
+      syncLine = L.polyline(t.path,{color,weight:4,opacity:.8}).addTo(syncMap);
+      syncMap.fitBounds(syncLine.getBounds(),{padding:[30,30]});
+    }
+
+    // GPS dot
+    const dotIcon = L.divIcon({className:"",html:`<div class="gps-dot"></div>`,iconSize:[16,16],iconAnchor:[8,8]});
+    gpsDot = L.marker(t.path[0],{icon:dotIcon}).addTo(syncMap);
+
+    progress = 0;
+    playing = false;
+    updateScrub();
+  },100);
+}
+
+// Play animation
+document.getElementById("playBtn").addEventListener("click",()=>{
+  if(!currentTrail) return;
+  playing = !playing;
+  if(playing) animateGps();
+});
+
+function animateGps(){
+  if(!playing||!currentTrail) return;
+  progress += 0.003;
+  if(progress >= 1){progress=0;playing=false;}
+  updateGpsDot();
+  updateScrub();
+  animFrame = requestAnimationFrame(animateGps);
+}
+
+function updateGpsDot(){
+  if(!currentTrail||!gpsDot) return;
+  const path = currentTrail.path;
+  const idx = Math.min(Math.floor(progress*(path.length-1)),path.length-2);
+  const frac = (progress*(path.length-1)) - idx;
+  const lat = path[idx][0]+(path[idx+1][0]-path[idx][0])*frac;
+  const lng = path[idx][1]+(path[idx+1][1]-path[idx][1])*frac;
+  gpsDot.setLatLng([lat,lng]);
+}
+
+function updateScrub(){
+  const pct = progress*100;
+  document.getElementById("scrubFill").style.width = pct+"%";
+  document.getElementById("scrubHandle").style.left = pct+"%";
+}
+
+// Scrub interaction
+const scrubBar = document.querySelector(".scrub-bar");
+function handleScrub(e){
+  const rect = scrubBar.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  progress = Math.max(0,Math.min(1,(clientX-rect.left)/rect.width));
+  updateGpsDot();
+  updateScrub();
+}
+scrubBar.addEventListener("mousedown",(e)=>{playing=false;handleScrub(e);
+  const move=(e2)=>handleScrub(e2);const up=()=>{document.removeEventListener("mousemove",move);document.removeEventListener("mouseup",up)};
+  document.addEventListener("mousemove",move);document.addEventListener("mouseup",up);
+});
+scrubBar.addEventListener("touchstart",(e)=>{playing=false;handleScrub(e);
+  const move=(e2)=>handleScrub(e2);const up=()=>{scrubBar.removeEventListener("touchmove",move);scrubBar.removeEventListener("touchend",up)};
+  scrubBar.addEventListener("touchmove",move);scrubBar.addEventListener("touchend",up);
+},{passive:true});
+
+// Back button
+document.getElementById("btnVideoBack").addEventListener("click",()=>{
+  playing=false;
+  if(animFrame) cancelAnimationFrame(animFrame);
+  document.getElementById("videoPage").classList.remove("show");
+  if(syncMap){syncMap.remove();syncMap=null;}
+});
+
+// Click on sync map trail line to jump
+document.getElementById("sync-map").addEventListener("click",(e)=>{
+  if(!syncMap||!currentTrail||!syncLine) return;
+  const latlng = syncMap.mouseEventToLatLng(e);
+  const path = currentTrail.path;
+  let minDist=Infinity,bestIdx=0;
+  path.forEach((p,i)=>{
+    const d = Math.sqrt((p[0]-latlng.lat)**2+(p[1]-latlng.lng)**2);
+    if(d<minDist){minDist=d;bestIdx=i;}
+  });
+  progress = bestIdx/(path.length-1);
+  updateGpsDot();
+  updateScrub();
+});
+
+// Share
+function copyLink(){
+  const url = window.location.href.split("?")[0]+`?trail=${currentTrail?.id||""}`;
+  navigator.clipboard?.writeText(url).then(()=>showToast("Link copied!")).catch(()=>showToast("Could not copy link"));
+}
+document.getElementById("btnShare").addEventListener("click",copyLink);
+
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2000);
+}
+
+// Close card on map click
+map.on("click",(e)=>{
+  if(!e.originalEvent.target.closest||!e.originalEvent.target.closest(".leaflet-marker-icon")){
+    document.getElementById("cardOverlay").classList.remove("show");
+  }
+});
+</script>
+</body>
+</html>

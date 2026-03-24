@@ -1,0 +1,154 @@
+@import 'leaflet/dist/leaflet.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.mapboxgl-map {
+  width: 100%;
+  height: 100%;
+}
+
+/* Hero gradient animation */
+@keyframes heroShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.hero-gradient {
+  background: linear-gradient(135deg, #0a1628 0%, #1A3550 25%, #0f2b1e 50%, #1A3550 75%, #0a1628 100%);
+  background-size: 400% 400%;
+  animation: heroShift 12s ease infinite;
+}
+
+/* Mountain silhouette */
+.mountain-bg {
+  position: relative;
+  overflow: hidden;
+}
+.mountain-bg::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background:
+    linear-gradient(135deg, transparent 33.33%, #0f2b1e 33.33%, #0f2b1e 40%, transparent 40%),
+    linear-gradient(225deg, transparent 28%, #122a1a 28%, #122a1a 38%, transparent 38%),
+    linear-gradient(165deg, transparent 25%, #0d2218 25%, #0d2218 35%, transparent 35%);
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Fade in on scroll */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* Stagger children */
+.stagger-children > * {
+  opacity: 0;
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.4s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.5s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.6s; }
+
+/* Pulse glow on CTA */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(34, 197, 94, 0.6); }
+}
+.pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* GPS dot pulse */
+@keyframes gpsPulse {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(3); opacity: 0; }
+}
+.gps-pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: gpsPulse 1.5s ease-out infinite;
+}
+
+/* Video player scanline effect */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+/* Trail line dash animation */
+@keyframes dashMove {
+  to { stroke-dashoffset: -20; }
+}
+.trail-dash {
+  stroke-dasharray: 10 5;
+  animation: dashMove 1s linear infinite;
+}
+
+/* Speed counter */
+@keyframes countUp {
+  from { opacity: 0.5; }
+  to { opacity: 1; }
+}
+
+/* Smooth gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #22c55e 0%, #3B7AB5 50%, #22c55e 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: heroShift 4s ease infinite;
+}
+
+/* Card hover lift */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+}
+
+/* Leaflet map overrides */
+.leaflet-container {
+  background: #1a2332;
+  border-radius: 12px;
+}
+
+/* HUD overlay styling */
+.hud-value {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
