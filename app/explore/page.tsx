@@ -7,6 +7,7 @@ import { sampleTrails, activityTypes, difficultyColors, difficultyLabels, type S
 export default function ExplorePage() {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
+  const leafletRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
   const linesRef = useRef<any[]>([]);
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
@@ -26,6 +27,7 @@ export default function ExplorePage() {
 
     const initMap = async () => {
       const L = (await import("leaflet")).default;
+      leafletRef.current = L;
 
       // Fix default marker icons
       delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -64,9 +66,9 @@ export default function ExplorePage() {
 
   // Update markers when filters change
   useEffect(() => {
-    if (!mapInstanceRef.current || !mapReady) return;
+    if (!mapInstanceRef.current || !mapReady || !leafletRef.current) return;
 
-    const L = require("leaflet");
+    const L = leafletRef.current;
     const map = mapInstanceRef.current;
 
     // Clear old markers and lines

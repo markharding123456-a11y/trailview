@@ -23,7 +23,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span className="text-xl font-bold tracking-tight">TRAILVIEW</span>
             </Link>
             <div className="hidden md:flex items-center gap-6">
-              <Link href="/explore" className="text-sm text-white/80 hover:text-white transition-colors">Explore Trails</Link>
               <Link href="/#how-it-works" className="text-sm text-white/80 hover:text-white transition-colors">How It Works</Link>
               <Link href="/#activities" className="text-sm text-white/80 hover:text-white transition-colors">Activities</Link>
               <Link href="/contribute" className="text-sm text-white/80 hover:text-white transition-colors">Contribute</Link>

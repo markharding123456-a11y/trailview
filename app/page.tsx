@@ -4,7 +4,7 @@ import Link from "next/link";
 import { sampleTrails, regions, activityTypes, difficultyColors } from "@/lib/sample-trails";
 
 const activityIcons: Record<string, string> = {
-  "MTB": "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93z",
+  "Mountain Biking": "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93z",
   "Motorcycle": "M19.44 9.03L15.41 5H11v2h3.59l2 2H5c-2.8 0-5 2.2-5 5s2.2 5 5 5c2.46 0 4.45-1.69 4.9-4h1.65l2.77-2.77c-.21.54-.32 1.14-.32 1.77 0 2.8 2.2 5 5 5s5-2.2 5-5c0-2.65-1.97-4.77-4.56-4.97z",
   "ATV/UTV": "M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99z",
   "Skiing/Snowboarding": "M18 14h-4l-2-2v-4c0-1.1-.9-2-2-2s-2 .9-2 2v5.5L5 17l1 2 5-3 3 3h4v-2h-3.5l-2.09-2.09L14 14h4v-2z",
@@ -355,7 +355,7 @@ export default function LandingPage() {
                 <div className="flex-1 p-8 md:p-10">
                   <div className="flex items-center gap-3 mb-4">
                     <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Expert</span>
-                    <span className="text-white/60 text-xs bg-white/10 px-2.5 py-1 rounded-full">MTB</span>
+                    <span className="text-white/60 text-xs bg-white/10 px-2.5 py-1 rounded-full">Mountain Biking</span>
                     <span className="text-white/60 text-xs bg-white/10 px-2.5 py-1 rounded-full">Whistler / Squamish</span>
                   </div>
                   <h3 className="text-3xl sm:text-4xl font-extrabold text-white mb-3 leading-tight">
