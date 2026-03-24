@@ -1,10 +1,8 @@
 /** @type {import('next').NextConfig} */
-const isProd = process.env.NEXT_PUBLIC_BASE_PATH === "/trailview";
-
 const nextConfig = {
   output: "export",
-  basePath: isProd ? "/trailview" : "",
-  assetPrefix: isProd ? "/trailview/" : "",
+  basePath: "/trailview",
+  assetPrefix: "/trailview/",
   images: {
     unoptimized: true,
   },
