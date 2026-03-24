@@ -24,7 +24,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span className="text-xl font-bold tracking-tight">TRAILVIEW</span>
             </Link>
             <div className="hidden md:flex items-center gap-6">
-              <Link href="/explore" className="text-sm text-white/80 hover:text-white transition-colors">Explore Trails</Link>
               <Link href="/#how-it-works" className="text-sm text-white/80 hover:text-white transition-colors">How It Works</Link>
               <Link href="/#activities" className="text-sm text-white/80 hover:text-white transition-colors">Activities</Link>
               <Link href="/contribute" className="text-sm text-white/80 hover:text-white transition-colors">Contribute</Link>
@@ -45,6 +44,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="flex md:hidden items-center gap-2">
               <Link href="/signup" className="bg-green-500 px-3 py-2 rounded-lg text-xs font-semibold">
                 Sign Up
+              </Link>
+              <Link href="/contribute" className="text-xs text-white/70 hover:text-white transition-colors px-2 py-2">
+                Contribute
               </Link>
               <Link href="/explore" className="bg-white/10 border border-white/20 px-3 py-2 rounded-lg text-xs font-semibold">
                 Explore
@@ -99,6 +101,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <li><Link href="/#how-it-works" className="hover:text-white transition-colors">How It Works</Link></li>
                   <li><Link href="/contribute" className="hover:text-white transition-colors">Contribute</Link></li>
                   <li><Link href="/trail" className="hover:text-white transition-colors">GPS Sync Demo</Link></li>
+                  <li><Link href="/signup" className="hover:text-white transition-colors">Sign Up</Link></li>
                 </ul>
               </div>
             </div>
