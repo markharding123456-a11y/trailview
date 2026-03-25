@@ -40,7 +40,14 @@ CREATE POLICY "Authenticated users can update trails" ON trails
 --    - Authenticated users can create new submissions
 --    - Users can read their own submissions (matched by contributor_id),
 --      and any authenticated user can read all submissions (for admin review)
---    - Authenticated users can update submissions (approve/reject workflow)
+--    - Only the original contributor or service_role (admin) can update
+--      submissions. This prevents privilege escalation where any authenticated
+--      user could approve/reject or tamper with another user's submission.
+--
+-- SECURITY NOTE: contributor_email should be protected in application code —
+-- the SELECT policy allows any authenticated user to read all submissions
+-- (needed for admin review), but the application layer should strip
+-- contributor_email from responses unless the requester is the owner or admin.
 -- ===========================================
 CREATE POLICY "Authenticated users can create submissions" ON submissions
   FOR INSERT WITH CHECK (auth.role() = 'authenticated');
@@ -48,8 +55,10 @@ CREATE POLICY "Authenticated users can create submissions" ON submissions
 CREATE POLICY "Authenticated users can read own submissions" ON submissions
   FOR SELECT USING (auth.uid()::text = contributor_id OR auth.role() = 'authenticated');
 
+-- Restrict UPDATE to own submissions or service_role (admin) to prevent
+-- unauthorized modification of other users' submissions.
 CREATE POLICY "Authenticated users can update submissions" ON submissions
-  FOR UPDATE USING (auth.role() = 'authenticated');
+  FOR UPDATE USING (auth.uid()::text = contributor_id OR auth.jwt() ->> 'role' = 'service_role');
 
 -- ===========================================
 -- 5. REGIONS policies

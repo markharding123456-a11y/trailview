@@ -25,6 +25,13 @@ const ALLOWED_TYPES: Record<string, string[]> = {
   video: [".mp4", ".mov", ".webm"],
 };
 
+const ALLOWED_MIME_TYPES: Record<string, string[]> = {
+  gpx: ["application/gpx+xml", "text/xml", "application/xml"],
+  thumbnail: ["image/jpeg", "image/png", "image/webp"],
+  video: ["video/mp4", "video/quicktime", "video/webm"],
+};
+
+// TODO: Implement proper JWT signature verification with Supabase JWT secret
 /**
  * Validate a Supabase JWT by decoding the payload and checking expiration.
  * Returns true if the token is present and not expired.
@@ -38,7 +45,10 @@ function isValidJwt(token: string): boolean {
     const decoded = JSON.parse(atob(payload));
     if (!decoded.exp) return false;
     // Check expiration (exp is in seconds)
-    return decoded.exp > Math.floor(Date.now() / 1000);
+    if (decoded.exp <= Math.floor(Date.now() / 1000)) return false;
+    // Check issuer contains "supabase"
+    if (!decoded.iss || !decoded.iss.includes("supabase")) return false;
+    return true;
   } catch {
     return false;
   }
@@ -87,6 +97,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       );
     }
 
+    // Validate MIME type
+    if (file.type && !ALLOWED_MIME_TYPES[type].includes(file.type)) {
+      return new Response(
+        `Invalid MIME type. Allowed for ${type}: ${ALLOWED_MIME_TYPES[type].join(", ")}`,
+        { status: 400 }
+      );
+    }
+
     // Build the R2 key: type/trailId/timestamp-filename
     const timestamp = Date.now();
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -122,8 +140,13 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       key,
       url,
       size: file.size,
+    }, {
+      headers: { "X-Content-Type-Options": "nosniff" },
     });
-  } catch (err: any) {
-    return new Response(`Upload error: ${err.message}`, { status: 500 });
+  } catch {
+    return Response.json({ error: "Upload failed" }, {
+      status: 500,
+      headers: { "X-Content-Type-Options": "nosniff" },
+    });
   }
 };

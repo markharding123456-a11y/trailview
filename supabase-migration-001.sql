@@ -67,7 +67,11 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
--- SUBMISSIONS: authenticated create, own-read + authenticated read/update
+-- SUBMISSIONS: authenticated create, own-read, owner-or-admin update
+-- SECURITY NOTE: contributor_email should be protected in application code —
+-- the SELECT policy allows any authenticated user to read all submissions
+-- (needed for admin review), but the application layer should strip
+-- contributor_email from responses unless the requester is the owner or admin.
 DO $$ BEGIN
   CREATE POLICY "Authenticated users can create submissions" ON submissions
     FOR INSERT WITH CHECK (auth.role() = 'authenticated');
@@ -80,9 +84,11 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
+-- Restrict UPDATE to own submissions or service_role (admin) to prevent
+-- unauthorized modification of other users' submissions.
 DO $$ BEGIN
   CREATE POLICY "Authenticated users can update submissions" ON submissions
-    FOR UPDATE USING (auth.role() = 'authenticated');
+    FOR UPDATE USING (auth.uid()::text = contributor_id OR auth.jwt() ->> 'role' = 'service_role');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 

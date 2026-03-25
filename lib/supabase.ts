@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -145,7 +145,42 @@ export async function getSubmissions(status?: string): Promise<Submission[]> {
   return data || [];
 }
 
+const VALID_DIFFICULTIES = ["green", "blue", "black", "expert"] as const;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export async function createSubmission(submission: Partial<Submission>): Promise<Submission> {
+  // Input validation
+  if (
+    typeof submission.trail_name !== "string" ||
+    submission.trail_name.trim().length === 0
+  ) {
+    throw new Error("trail_name is required and must be a non-empty string");
+  }
+  if (submission.trail_name.length > 200) {
+    throw new Error("trail_name must be under 200 characters");
+  }
+
+  if (!Array.isArray(submission.activity_types) || submission.activity_types.length === 0) {
+    throw new Error("activity_types must be an array with at least one item");
+  }
+
+  if (
+    submission.difficulty &&
+    !VALID_DIFFICULTIES.includes(submission.difficulty)
+  ) {
+    throw new Error(
+      `difficulty must be one of: ${VALID_DIFFICULTIES.join(", ")}`
+    );
+  }
+
+  if (
+    submission.contributor_email != null &&
+    submission.contributor_email !== "" &&
+    !EMAIL_PATTERN.test(submission.contributor_email)
+  ) {
+    throw new Error("contributor_email must be a valid email address");
+  }
+
   const { data, error } = await supabase
     .from("submissions")
     .insert(submission)
