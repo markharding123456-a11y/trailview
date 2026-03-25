@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useCallback } from "react";
 import { parseGpx, type GpxResult } from "@/lib/gpx";
 import { saveSubmission } from "@/lib/submissions";
+import { createSubmission } from "@/lib/supabase";
 import { uploadGpx, uploadVideo, formatFileSize, type UploadProgress } from "@/lib/cloudflare";
 
 const ACTIVITIES = [
@@ -165,25 +166,45 @@ export default function UploadPage() {
         }
       }
 
-      // Save submission metadata
-      saveSubmission({
-        id: trailId,
-        trailName: form.trailName.trim(),
-        activity: form.activity,
+      // Save submission to Supabase (primary) and localStorage (fallback)
+      const submissionData = {
+        trail_name: form.trailName.trim(),
+        activity_types: form.activity,
         region: form.region,
         difficulty: form.difficulty as "green" | "blue" | "black" | "expert",
         description: form.description.trim(),
-        videoLink: videoUrl,
-        gpxData: gpxResult
-          ? {
-              coordinates: gpxResult.coordinates,
-              distance_km: gpxResult.distance_km,
-              elevation_gain_m: gpxResult.elevation_gain_m,
-            }
-          : null,
-        status: "pending",
-        submittedAt: new Date().toISOString(),
-      });
+        video_key: videoUrl || null,
+        gpx_key: gpxUrl || null,
+        gpx_coordinates: gpxResult?.coordinates || null,
+        distance_km: gpxResult?.distance_km || null,
+        elevation_gain_m: gpxResult?.elevation_gain_m || null,
+        latitude: gpxResult?.coordinates?.[0]?.lat || null,
+        longitude: gpxResult?.coordinates?.[0]?.lng || null,
+      };
+
+      try {
+        await createSubmission(submissionData);
+      } catch {
+        // Fallback to localStorage if Supabase is unavailable
+        saveSubmission({
+          id: trailId,
+          trailName: form.trailName.trim(),
+          activity: form.activity,
+          region: form.region,
+          difficulty: form.difficulty as "green" | "blue" | "black" | "expert",
+          description: form.description.trim(),
+          videoLink: videoUrl,
+          gpxData: gpxResult
+            ? {
+                coordinates: gpxResult.coordinates,
+                distance_km: gpxResult.distance_km,
+                elevation_gain_m: gpxResult.elevation_gain_m,
+              }
+            : null,
+          status: "pending",
+          submittedAt: new Date().toISOString(),
+        });
+      }
 
       setSubmitted(true);
     } catch {

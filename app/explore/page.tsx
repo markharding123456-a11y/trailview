@@ -263,7 +263,7 @@ export default function ExplorePage() {
                   </div>
                 </div>
                 <Link
-                  href="/trail"
+                  href={`/trail?id=${selectedTrail.id}`}
                   className="block w-full bg-green-500 hover:bg-green-400 text-white text-center py-3 rounded-xl font-semibold transition-all shadow-lg"
                 >
                   <span className="flex items-center justify-center gap-2">

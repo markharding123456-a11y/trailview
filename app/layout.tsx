@@ -27,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/#how-it-works" className="text-sm text-white/80 hover:text-white transition-colors">How It Works</Link>
               <Link href="/#activities" className="text-sm text-white/80 hover:text-white transition-colors">Activities</Link>
               <Link href="/contribute" className="text-sm text-white/80 hover:text-white transition-colors">Contribute</Link>
+              <Link href="/upload" className="text-sm text-white/80 hover:text-white transition-colors">Upload</Link>
               <Link
                 href="/signup"
                 className="bg-green-500 hover:bg-green-400 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-green-500/25"
@@ -102,6 +103,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <li><Link href="/contribute" className="hover:text-white transition-colors">Contribute</Link></li>
                   <li><Link href="/trail" className="hover:text-white transition-colors">GPS Sync Demo</Link></li>
                   <li><Link href="/signup" className="hover:text-white transition-colors">Sign Up</Link></li>
+                <li><Link href="/admin" className="hover:text-white transition-colors">Admin</Link></li>
                 </ul>
               </div>
             </div>

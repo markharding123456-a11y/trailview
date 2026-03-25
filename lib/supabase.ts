@@ -27,15 +27,69 @@ export type Trail = {
   video_status: "not_filmed" | "filmed" | "uploaded" | "processing" | "live";
   filmed_date: string | null;
   notes: string | null;
+  description: string | null;
+  highlights: string[];
+  season: string | null;
+  duration_min: number | null;
+  video_url: string | null;
+  gpx_url: string | null;
+  thumbnail_url: string | null;
+  contributor_id: string | null;
+  contributor_name: string | null;
   created_at: string;
   updated_at: string;
   regions?: Region;
 };
 
+export type Submission = {
+  id: string;
+  trail_name: string;
+  activity_types: string[];
+  region: string;
+  difficulty: "green" | "blue" | "black" | "expert";
+  description: string | null;
+  video_key: string | null;
+  gpx_key: string | null;
+  thumbnail_key: string | null;
+  gpx_coordinates: Array<{ lat: number; lng: number; ele: number }> | null;
+  distance_km: number | null;
+  elevation_gain_m: number | null;
+  latitude: number | null;
+  longitude: number | null;
+  status: "pending" | "approved" | "rejected";
+  reviewer_notes: string | null;
+  reviewed_at: string | null;
+  contributor_name: string | null;
+  contributor_email: string | null;
+  submitted_at: string;
+};
+
+// ── Trails ──
+
 export async function getTrails(): Promise<Trail[]> {
   const { data, error } = await supabase
     .from("trails")
     .select("*, regions(*)")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getTrailById(id: string): Promise<Trail | null> {
+  const { data, error } = await supabase
+    .from("trails")
+    .select("*, regions(*)")
+    .eq("id", id)
+    .single();
+  if (error) return null;
+  return data;
+}
+
+export async function getLiveTrails(): Promise<Trail[]> {
+  const { data, error } = await supabase
+    .from("trails")
+    .select("*, regions(*)")
+    .eq("video_status", "live")
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data || [];
@@ -74,4 +128,83 @@ export async function updateTrail(id: string, trail: Partial<Trail>): Promise<Tr
 export async function deleteTrail(id: string): Promise<void> {
   const { error } = await supabase.from("trails").delete().eq("id", id);
   if (error) throw error;
+}
+
+// ── Submissions ──
+
+export async function getSubmissions(status?: string): Promise<Submission[]> {
+  let query = supabase
+    .from("submissions")
+    .select("*")
+    .order("submitted_at", { ascending: false });
+  if (status) {
+    query = query.eq("status", status);
+  }
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createSubmission(submission: Partial<Submission>): Promise<Submission> {
+  const { data, error } = await supabase
+    .from("submissions")
+    .insert(submission)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateSubmission(id: string, update: Partial<Submission>): Promise<Submission> {
+  const { data, error } = await supabase
+    .from("submissions")
+    .update(update)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Approve a submission: creates a trail from it and marks it approved.
+ */
+export async function approveSubmission(
+  submission: Submission,
+  regionId: string
+): Promise<Trail> {
+  // Create the trail
+  const trail = await createTrail({
+    name: submission.trail_name,
+    region_id: regionId,
+    activity_types: submission.activity_types,
+    difficulty: submission.difficulty,
+    description: submission.description,
+    distance_km: submission.distance_km,
+    elevation_gain_m: submission.elevation_gain_m,
+    latitude: submission.latitude,
+    longitude: submission.longitude,
+    gpx_coordinates: submission.gpx_coordinates,
+    video_url: submission.video_key ? `/api/assets/${submission.video_key}` : null,
+    gpx_url: submission.gpx_key ? `/api/assets/${submission.gpx_key}` : null,
+    thumbnail_url: submission.thumbnail_key ? `/api/assets/${submission.thumbnail_key}` : null,
+    video_status: "live",
+    contributor_name: submission.contributor_name,
+  });
+
+  // Mark submission as approved
+  await updateSubmission(submission.id, {
+    status: "approved",
+    reviewed_at: new Date().toISOString(),
+  });
+
+  return trail;
+}
+
+export async function rejectSubmission(id: string, notes?: string): Promise<void> {
+  await updateSubmission(id, {
+    status: "rejected",
+    reviewer_notes: notes || null,
+    reviewed_at: new Date().toISOString(),
+  });
 }

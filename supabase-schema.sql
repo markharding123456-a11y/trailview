@@ -34,13 +34,54 @@ CREATE TABLE trails (
   video_status TEXT DEFAULT 'not_filmed' CHECK (video_status IN ('not_filmed','filmed','uploaded','processing','live')),
   filmed_date DATE,
   notes TEXT,
+  description TEXT,
+  highlights TEXT[] DEFAULT '{}',
+  season TEXT,
+  duration_min INTEGER,
+  -- Cloudflare R2 asset URLs
+  video_url TEXT,
+  gpx_url TEXT,
+  thumbnail_url TEXT,
+  -- Contributor tracking
+  contributor_id UUID,
+  contributor_name TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Enable Row Level Security (open for now — Jim is the only user)
+-- Submissions table — pending uploads awaiting admin review
+CREATE TABLE submissions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  trail_name TEXT NOT NULL,
+  activity_types TEXT[] NOT NULL DEFAULT '{}',
+  region TEXT NOT NULL,
+  difficulty TEXT NOT NULL DEFAULT 'blue' CHECK (difficulty IN ('green','blue','black','expert')),
+  description TEXT,
+  -- R2 asset keys
+  video_key TEXT,
+  gpx_key TEXT,
+  thumbnail_key TEXT,
+  -- Parsed GPX data
+  gpx_coordinates JSONB,
+  distance_km DECIMAL(6,2),
+  elevation_gain_m INTEGER,
+  latitude DECIMAL(9,6),
+  longitude DECIMAL(9,6),
+  -- Review workflow
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
+  reviewer_notes TEXT,
+  reviewed_at TIMESTAMPTZ,
+  -- Contributor info
+  contributor_name TEXT,
+  contributor_email TEXT,
+  submitted_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable Row Level Security
 ALTER TABLE trails ENABLE ROW LEVEL SECURITY;
 ALTER TABLE regions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE submissions ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow all access to trails" ON trails FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all access to regions" ON regions FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all access to submissions" ON submissions FOR ALL USING (true) WITH CHECK (true);
