@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "dev": "next dev",
+    "dev:cloudflare": "DEPLOY_TARGET=cloudflare next build && npx wrangler pages dev out",
     "build": "next build",
+    "build:cloudflare": "DEPLOY_TARGET=cloudflare next build",
+    "deploy:cloudflare": "DEPLOY_TARGET=cloudflare next build && npx wrangler pages deploy out --project-name trailview",
     "start": "next start"
   },
   "keywords": [],
@@ -29,6 +32,8 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
-    "@types/mapbox-gl": "^3.4.1"
+    "@cloudflare/workers-types": "^4.20241205.0",
+    "@types/mapbox-gl": "^3.4.1",
+    "wrangler": "^3.99.0"
   }
 }

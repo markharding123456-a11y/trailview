@@ -1,0 +1,28 @@
+# ===========================================
+# TrailView — Cloudflare Pages Configuration
+# ===========================================
+#
+# Setup:
+#   1. Create R2 bucket:    npx wrangler r2 bucket create trailview-assets
+#   2. Create KV namespace: npx wrangler kv namespace create TRAIL_CACHE
+#      (then paste the ID below)
+#   3. Deploy:              npm run deploy:cloudflare
+#
+# Local dev with bindings:
+#   npx wrangler pages dev out --r2 ASSETS_BUCKET=trailview-assets
+
+name = "trailview"
+compatibility_date = "2024-12-01"
+
+# R2 — stores GPX files, videos, and trail thumbnails
+[[r2_buckets]]
+binding = "ASSETS_BUCKET"
+bucket_name = "trailview-assets"
+
+# KV — caches trail metadata and sync manifests for fast edge reads
+[[kv_namespaces]]
+binding = "TRAIL_CACHE"
+id = ""  # Paste your KV namespace ID here
+
+[vars]
+ENVIRONMENT = "production"

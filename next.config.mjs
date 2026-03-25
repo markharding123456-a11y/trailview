@@ -1,8 +1,16 @@
 /** @type {import('next').NextConfig} */
+
+const isCloudflare = process.env.DEPLOY_TARGET === "cloudflare";
+
 const nextConfig = {
   output: "export",
-  basePath: "/trailview",
-  assetPrefix: "/trailview/",
+  // GitHub Pages needs /trailview prefix; Cloudflare Pages serves from root
+  ...(isCloudflare
+    ? {}
+    : {
+        basePath: "/trailview",
+        assetPrefix: "/trailview/",
+      }),
   images: {
     unoptimized: true,
   },
