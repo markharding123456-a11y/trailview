@@ -5,6 +5,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { getTrailById, type Trail } from "@/lib/supabase";
 import { sampleTrails, difficultyColors, difficultyLabels } from "@/lib/sample-trails";
+import VideoPlayer from "@/app/components/video-player";
+import TrailMap from "@/app/components/trail-map";
+import ElevationChart from "@/app/components/elevation-chart";
 
 // Demo trail fallback when no ID is provided
 const demoTrail = sampleTrails[0];
@@ -28,11 +31,6 @@ function TrailContent() {
   const searchParams = useSearchParams();
   const trailId = searchParams.get("id");
 
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markerRef = useRef<any>(null);
-  const pulseRef = useRef<any>(null);
-  const progressLineRef = useRef<any>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const [dbTrail, setDbTrail] = useState<Trail | null>(null);
@@ -126,43 +124,10 @@ function TrailContent() {
     return () => { video.removeEventListener("loadedmetadata", onMeta); video.removeEventListener("timeupdate", onTime); video.removeEventListener("play", onPlay); video.removeEventListener("pause", onPause); video.removeEventListener("ended", onEnd); };
   }, [totalPoints]);
 
-  // Map
+  // Update speed when currentIndex changes
   useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current || coords.length < 2) return;
-    const initMap = async () => {
-      const L = (await import("leaflet")).default;
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
-      const bounds: [[number, number], [number, number]] = coords.reduce<[[number, number], [number, number]]>(
-        (b, [lat, lng]) => [[Math.min(b[0][0], lat), Math.min(b[0][1], lng)], [Math.max(b[1][0], lat), Math.max(b[1][1], lng)]],
-        [[90, 180], [-90, -180]]
-      );
-      const map = L.map(mapRef.current!, { center: [(bounds[0][0] + bounds[1][0]) / 2, (bounds[0][1] + bounds[1][1]) / 2], zoom: 13, zoomControl: false });
-      L.control.zoom({ position: "bottomright" }).addTo(map);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "&copy; OSM", maxZoom: 18 }).addTo(map);
-      map.fitBounds(bounds as any, { padding: [30, 30] });
-      const color = difficultyColors[trailDifficulty];
-      L.polyline(coords.map(([lat, lng]) => [lat, lng] as [number, number]), { color, weight: 4, opacity: 0.3, dashArray: "8 4" }).addTo(map);
-      progressLineRef.current = L.polyline([], { color, weight: 4, opacity: 0.9 }).addTo(map);
-      L.circleMarker([coords[0][0], coords[0][1]], { radius: 6, fillColor: "#22c55e", color: "#fff", weight: 2, fillOpacity: 1 }).addTo(map).bindTooltip("Start", { permanent: true, direction: "top", offset: [0, -8], className: "!text-xs !font-bold !bg-green-500 !text-white !border-green-500 !rounded-lg !px-2" });
-      L.circleMarker([coords[totalPoints - 1][0], coords[totalPoints - 1][1]], { radius: 6, fillColor: "#ef4444", color: "#fff", weight: 2, fillOpacity: 1 }).addTo(map).bindTooltip("End", { permanent: true, direction: "top", offset: [0, -8], className: "!text-xs !font-bold !bg-red-500 !text-white !border-red-500 !rounded-lg !px-2" });
-      pulseRef.current = L.circleMarker([coords[0][0], coords[0][1]], { radius: 16, fillColor: color, color, weight: 2, fillOpacity: 0.15, opacity: 0.3 }).addTo(map);
-      markerRef.current = L.circleMarker([coords[0][0], coords[0][1]], { radius: 8, fillColor: "#fff", color, weight: 3, fillOpacity: 1 }).addTo(map);
-      mapInstanceRef.current = map;
-    };
-    initMap();
-    return () => { if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null; } };
-  }, [coords.length, trailDifficulty]);
-
-  // Sync marker
-  useEffect(() => {
-    if (!markerRef.current || !currentCoord) return;
-    const [lat, lng] = currentCoord;
-    markerRef.current.setLatLng([lat, lng]);
-    if (pulseRef.current) pulseRef.current.setLatLng([lat, lng]);
-    if (progressLineRef.current) progressLineRef.current.setLatLngs(coords.slice(0, currentIndex + 1).map(([lat, lng]) => [lat, lng]));
-    if (mapInstanceRef.current && isPlaying) mapInstanceRef.current.panTo([lat, lng], { animate: true, duration: 0.3 });
     setSpeed(getSpeed(currentIndex));
-  }, [currentIndex, currentCoord, isPlaying, getSpeed]);
+  }, [currentIndex, getSpeed]);
 
   const handleShare = async () => {
     try {
@@ -218,7 +183,6 @@ function TrailContent() {
   const elevations = coords.map(([, , e]) => e);
   const minEle = Math.min(...elevations);
   const maxEle = Math.max(...elevations);
-  const eleRange = maxEle - minEle || 1;
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -294,92 +258,49 @@ function TrailContent() {
         <div className="grid lg:grid-cols-5 gap-6">
           {/* Video */}
           <div className="lg:col-span-3">
-            <div className="bg-black rounded-2xl overflow-hidden shadow-2xl">
-              <div className="aspect-video relative bg-black">
-                {videoUrl ? (
-                  <video ref={videoRef} aria-label="Trail video player" className="absolute inset-0 w-full h-full object-contain" preload="metadata" playsInline>
-                    <source src={videoUrl} type="video/mp4" />
-                  </video>
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-                    <div className="text-center">
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1" className="mx-auto mb-3 opacity-20"><polygon points="5 3 19 12 5 21 5 3" /></svg>
-                      <p className="text-white/30 text-sm">{isDemo ? "Demo — upload a real trail to see video" : "Video coming soon"}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* HUD overlays */}
-                {coords.length > 0 && (
-                  <>
-                    <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md rounded-xl px-4 py-2 border border-white/10 pointer-events-none z-10">
-                      <div className="text-[10px] text-white/40 uppercase tracking-wider">Speed</div>
-                      <div className="text-green-400 font-bold text-2xl">{isPlaying ? speed.toFixed(1) : "0.0"}<span className="text-sm text-white/30 ml-1">km/h</span></div>
-                    </div>
-                    <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md rounded-xl px-4 py-2 border border-white/10 pointer-events-none z-10">
-                      <div className="text-[10px] text-white/40 uppercase tracking-wider">Elevation</div>
-                      <div className="text-blue-400 font-bold text-2xl">{currentCoord ? currentCoord[2].toLocaleString() : "0"}<span className="text-sm text-white/30 ml-1">m</span></div>
-                    </div>
-                    <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md rounded-xl px-4 py-2 border border-white/10 pointer-events-none z-10">
-                      <div className="text-[10px] text-white/40 uppercase tracking-wider">Distance</div>
-                      <div className="text-amber-400 font-bold text-xl">{distanceCovered}<span className="text-sm text-white/30"> / {trailDistanceKm} km</span></div>
-                    </div>
-                    <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-green-500/20 backdrop-blur-sm rounded-full px-3 py-1 border border-green-400/30 flex items-center gap-2 pointer-events-none z-10">
-                      <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" /><span className="text-green-300 text-xs font-semibold">GPS SYNCED</span>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Controls */}
-              {videoUrl && (
-                <div className="bg-black px-4 py-3 border-t border-white/5">
-                  <div className="flex items-center gap-3">
-                    <button onClick={togglePlay} disabled={!videoReady} aria-label={isPlaying ? "Pause" : "Play"} className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-30 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400">
-                      {isPlaying ? <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" /></svg> : <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="8 5 20 12 8 19" /></svg>}
-                    </button>
-                    <div className="flex-1 h-8 flex items-center cursor-pointer group" onClick={handleScrub}>
-                      <div className="w-full h-1.5 bg-white/10 group-hover:h-3 transition-all rounded-full">
-                        <div className="h-full bg-green-500 rounded-full relative" style={{ width: `${progress * 100}%` }}>
-                          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-xs text-white/40 font-mono flex-shrink-0 tabular-nums">{elapsedMin}:{elapsedSecRem.toString().padStart(2, "0")}<span className="text-white/20"> / {totalMin}:{totalSecRem.toString().padStart(2, "0")}</span></div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <VideoPlayer
+              ref={videoRef}
+              videoUrl={videoUrl}
+              isDemo={isDemo}
+              isPlaying={isPlaying}
+              videoReady={videoReady}
+              progress={progress}
+              speed={speed}
+              currentElevation={currentCoord ? currentCoord[2] : null}
+              distanceCovered={distanceCovered}
+              totalDistanceKm={trailDistanceKm}
+              elapsedMin={elapsedMin}
+              elapsedSecRem={elapsedSecRem}
+              totalMin={totalMin}
+              totalSecRem={totalSecRem}
+              hasCoords={coords.length > 0}
+              onPlayPause={togglePlay}
+              onScrub={handleScrub}
+            />
 
             {/* Elevation */}
             {coords.length > 2 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mt-4">
-                <h3 className="font-semibold text-brand-dark text-sm mb-3">Elevation Profile</h3>
-                <div className="relative h-24">
-                  <svg viewBox={`0 0 ${totalPoints} 100`} className="w-full h-full" preserveAspectRatio="none">
-                    <path d={`M0 100 ${elevations.map((e, i) => `L${i} ${100 - ((e - minEle) / eleRange) * 80}`).join(" ")} L${totalPoints - 1} 100 Z`} fill={difficultyColors[trailDifficulty]} fillOpacity="0.1" />
-                    <path d={`M${elevations.map((e, i) => `${i} ${100 - ((e - minEle) / eleRange) * 80}`).join(" L")}`} fill="none" stroke={difficultyColors[trailDifficulty]} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-                    <line x1={currentIndex} y1="0" x2={currentIndex} y2="100" stroke="#22c55e" strokeWidth="1" vectorEffect="non-scaling-stroke" strokeDasharray="3 2" />
-                    <circle cx={currentIndex} cy={100 - ((elevations[currentIndex] - minEle) / eleRange) * 80} r="3" fill="#22c55e" vectorEffect="non-scaling-stroke" />
-                  </svg>
-                  <div className="absolute left-0 top-0 text-[10px] text-gray-400">{maxEle}m</div>
-                  <div className="absolute left-0 bottom-0 text-[10px] text-gray-400">{minEle}m</div>
-                  <div className="absolute right-0 bottom-0 text-[10px] text-gray-400">{trailDistanceKm} km</div>
-                </div>
-              </div>
+              <ElevationChart
+                elevations={elevations}
+                currentIndex={currentIndex}
+                minEle={minEle}
+                maxEle={maxEle}
+                totalDistanceKm={trailDistanceKm}
+                difficulty={trailDifficulty}
+              />
             )}
           </div>
 
           {/* Sidebar */}
           <div className="lg:col-span-2 space-y-4">
             {coords.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-3 border-b border-gray-100 flex items-center justify-between">
-                  <div className="flex items-center gap-2"><span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /><span className="text-xs font-semibold text-brand-dark">Live GPS Tracking</span></div>
-                  <span className="text-[10px] text-gray-400">{currentCoord ? `${currentCoord[0].toFixed(4)}, ${currentCoord[1].toFixed(4)}` : ""}</span>
-                </div>
-                <div ref={mapRef} role="img" aria-label="Trail route map" style={{ height: 350 }} />
-              </div>
+              <TrailMap
+                coordinates={coords}
+                currentIndex={currentIndex}
+                isPlaying={isPlaying}
+                difficulty={trailDifficulty}
+                mapContainerRef={() => {}}
+              />
             )}
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">

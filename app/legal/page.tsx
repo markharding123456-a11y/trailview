@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Legal — TrailView",
+  description:
+    "TrailView terms of service, privacy policy, contributor agreement, and legal information.",
+};
 
 const LAST_UPDATED = "March 25, 2026";
 
