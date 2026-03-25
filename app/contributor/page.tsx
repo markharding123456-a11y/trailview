@@ -73,7 +73,7 @@ function ContributorContent() {
             </div>
             <div>
               <h1 className="text-3xl font-bold">{name || "All Contributors"}</h1>
-              <p className="text-white/50 mt-1">TrailView Contributor</p>
+              <p className="text-white/60 mt-1">TrailView Contributor</p>
             </div>
           </div>
 
@@ -145,7 +145,7 @@ function ContributorContent() {
                     </div>
                   </div>
                   <div className="p-3">
-                    <div className="text-xs text-gray-400">{trail.regions?.name}</div>
+                    <div className="text-xs text-gray-500">{trail.regions?.name}</div>
                     <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
                       {trail.distance_km && <span>{trail.distance_km} km</span>}
                       {trail.elevation_gain_m && <span>{trail.elevation_gain_m}m elev</span>}
@@ -163,9 +163,9 @@ function ContributorContent() {
         )}
 
         {/* CTA */}
-        <div className="mt-12 bg-brand-dark rounded-2xl p-8 text-white text-center">
+        <div className="mt-12 bg-brand-dark rounded-xl p-8 text-white text-center">
           <h3 className="text-xl font-bold mb-2">Want to contribute?</h3>
-          <p className="text-white/50 mb-6">Film trails, share them with the community, and earn per view.</p>
+          <p className="text-white/60 mb-6">Film trails, share them with the community, and earn per view.</p>
           <div className="flex gap-3 justify-center">
             <Link href="/signup/contributor" className="bg-green-500 hover:bg-green-400 px-6 py-3 rounded-xl font-semibold transition-colors">
               Sign Up as Contributor

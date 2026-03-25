@@ -209,7 +209,7 @@ function TrailContent() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-brand-dark mb-2">Trail Not Found</h2>
           <p className="text-gray-500 mb-4">This trail doesn&apos;t exist or was removed.</p>
-          <Link href="/explore" className="bg-green-500 text-white px-6 py-3 rounded-lg font-semibold">Explore Trails</Link>
+          <Link href="/explore" className="bg-green-500 hover:bg-green-400 text-white px-6 py-3 rounded-xl font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2">Explore Trails</Link>
         </div>
       </div>
     );
@@ -227,7 +227,7 @@ function TrailContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           <div className="flex items-start justify-between">
             <div>
-              <Link href="/explore" className="text-white/60 hover:text-white text-sm transition-colors flex items-center gap-1 mb-2">
+              <Link href="/explore" className="text-white/60 hover:text-white text-sm transition-colors flex items-center gap-1 mb-2 focus-visible:text-white focus-visible:outline-none">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
                 Back to Explore
               </Link>
@@ -246,7 +246,8 @@ function TrailContent() {
               <div className="relative">
                 <button
                   onClick={() => setShowShareMenu(!showShareMenu)}
-                  className="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2"
+                  aria-label="Share trail"
+                  className="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
@@ -258,7 +259,7 @@ function TrailContent() {
                   <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 p-3 z-50 w-56">
                     <button
                       onClick={handleShare}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
                     >
                       {copied ? (
                         <>
@@ -296,7 +297,7 @@ function TrailContent() {
             <div className="bg-black rounded-2xl overflow-hidden shadow-2xl">
               <div className="aspect-video relative bg-black">
                 {videoUrl ? (
-                  <video ref={videoRef} className="absolute inset-0 w-full h-full object-contain" preload="metadata" playsInline>
+                  <video ref={videoRef} aria-label="Trail video player" className="absolute inset-0 w-full h-full object-contain" preload="metadata" playsInline>
                     <source src={videoUrl} type="video/mp4" />
                   </video>
                 ) : (
@@ -334,7 +335,7 @@ function TrailContent() {
               {videoUrl && (
                 <div className="bg-black px-4 py-3 border-t border-white/5">
                   <div className="flex items-center gap-3">
-                    <button onClick={togglePlay} disabled={!videoReady} className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-30 flex-shrink-0">
+                    <button onClick={togglePlay} disabled={!videoReady} aria-label={isPlaying ? "Pause" : "Play"} className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-30 flex-shrink-0">
                       {isPlaying ? <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" /></svg> : <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="8 5 20 12 8 19" /></svg>}
                     </button>
                     <div className="flex-1 h-8 flex items-center cursor-pointer group" onClick={handleScrub}>
@@ -372,16 +373,16 @@ function TrailContent() {
           {/* Sidebar */}
           <div className="lg:col-span-2 space-y-4">
             {coords.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-3 border-b border-gray-100 flex items-center justify-between">
                   <div className="flex items-center gap-2"><span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /><span className="text-xs font-semibold text-brand-dark">Live GPS Tracking</span></div>
                   <span className="text-[10px] text-gray-400">{currentCoord ? `${currentCoord[0].toFixed(4)}, ${currentCoord[1].toFixed(4)}` : ""}</span>
                 </div>
-                <div ref={mapRef} style={{ height: 350 }} />
+                <div ref={mapRef} role="img" aria-label="Trail route map" style={{ height: 350 }} />
               </div>
             )}
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
               <h3 className="font-semibold text-brand-dark mb-3">About This Trail</h3>
               {trailDescription && <p className="text-sm text-gray-500 leading-relaxed mb-4">{trailDescription}</p>}
               {trailHighlights.length > 0 && (
@@ -395,9 +396,9 @@ function TrailContent() {
               </div>
             </div>
 
-            <div className="bg-brand-dark rounded-2xl p-5 text-white text-center">
+            <div className="bg-brand-dark rounded-xl p-5 text-white text-center">
               <h3 className="font-bold mb-2">Want to film this trail?</h3>
-              <p className="text-sm text-white/50 mb-4">Contributors earn up to $0.008 per view</p>
+              <p className="text-sm text-white/60 mb-4">Contributors earn up to $0.008 per view</p>
               <Link href="/signup/contributor" className="block w-full bg-green-500 hover:bg-green-400 py-3 rounded-xl font-semibold transition-all">Become a Contributor</Link>
             </div>
           </div>
@@ -417,7 +418,7 @@ function TrailContent() {
                   </div>
                 </div>
                 <div className="p-3">
-                  <div className="text-xs text-gray-400">{t.region}</div>
+                  <div className="text-xs text-gray-500">{t.region}</div>
                   <div className="text-xs text-gray-400 mt-1">{t.distanceKm} km &middot; {t.elevationGainM}m elev</div>
                 </div>
               </Link>

@@ -162,7 +162,7 @@ function ExplorePageInner() {
               <button
                 onClick={() => setSearchQuery("")}
                 aria-label="Clear search"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
               </button>
@@ -173,7 +173,7 @@ function ExplorePageInner() {
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setSelectedActivity(null)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 ${
                 !selectedActivity ? "bg-brand-dark text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
               }`}
             >
@@ -183,7 +183,7 @@ function ExplorePageInner() {
               <button
                 key={a}
                 onClick={() => setSelectedActivity(selectedActivity === a ? null : a)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 ${
                   selectedActivity === a ? "bg-brand-dark text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                 }`}
               >
@@ -198,7 +198,7 @@ function ExplorePageInner() {
               <button
                 key={d}
                 onClick={() => setSelectedDifficulty(selectedDifficulty === d ? null : d)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 ${
                   selectedDifficulty === d ? "ring-2 ring-offset-1 ring-brand-dark" : ""
                 }`}
                 style={{ backgroundColor: difficultyColors[d] + "20", color: difficultyColors[d] }}
@@ -273,7 +273,7 @@ function ExplorePageInner() {
                 <button
                   onClick={() => setSelectedTrail(null)}
                   aria-label="Close trail details"
-                  className="absolute top-3 right-3 w-8 h-8 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition-colors"
+                  className="absolute top-3 right-3 w-8 h-8 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
                 </button>
@@ -312,7 +312,7 @@ function ExplorePageInner() {
                 </div>
                 <Link
                   href={`/trail?id=${selectedTrail.id}`}
-                  className="block w-full bg-green-500 hover:bg-green-400 text-white text-center py-3 rounded-xl font-semibold transition-all shadow-lg"
+                  className="block w-full bg-green-500 hover:bg-green-400 text-white text-center py-3 rounded-xl font-semibold transition-colors shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
                 >
                   <span className="flex items-center justify-center gap-2">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="8 5 20 12 8 19" /></svg>
