@@ -92,12 +92,13 @@ export default function AdminPage() {
   async function handleSignOut() {
     await signOut();
     setAuthenticated(false);
+    setIsAdminUser(null);
   }
 
   useEffect(() => {
-    if (!authenticated) return;
+    if (!authenticated || !isAdminUser) return;
     loadData();
-  }, [authenticated]);
+  }, [authenticated, isAdminUser]);
 
   async function loadData() {
     setLoading(true);
@@ -159,6 +160,31 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="w-10 h-10 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (authenticated && isAdminUser === false) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 max-w-sm w-full text-center">
+          <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-bold text-brand-dark mb-2">Access Denied</h1>
+          <p className="text-sm text-gray-500 mb-6">
+            You don&apos;t have admin privileges. Contact the site administrator.
+          </p>
+          <button
+            onClick={handleSignOut}
+            className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-dark focus-visible:ring-offset-2"
+          >
+            Sign Out
+          </button>
+        </div>
       </div>
     );
   }

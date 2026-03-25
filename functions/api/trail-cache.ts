@@ -8,28 +8,11 @@
  * for instant loads without hitting Supabase.
  */
 
+import { verifyJwt } from "../lib/jwt";
+
 interface Env {
   TRAIL_CACHE: KVNamespace;
-}
-
-// TODO: Implement proper JWT signature verification with Supabase JWT secret
-/**
- * Validate a Supabase JWT by decoding the payload and checking expiration.
- * Returns true if the token is present and not expired.
- */
-function isValidJwt(token: string): boolean {
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return false;
-    const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const decoded = JSON.parse(atob(payload));
-    if (!decoded.exp) return false;
-    if (decoded.exp <= Math.floor(Date.now() / 1000)) return false;
-    if (!decoded.iss || !decoded.iss.includes("supabase")) return false;
-    return true;
-  } catch {
-    return false;
-  }
+  SUPABASE_JWT_SECRET: string;
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
@@ -67,7 +50,8 @@ export const onRequestPut: PagesFunction<Env> = async (context) => {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
   const token = authHeader.slice(7);
-  if (!token || !isValidJwt(token)) {
+  const { valid } = await verifyJwt(token, context.env.SUPABASE_JWT_SECRET);
+  if (!valid) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 

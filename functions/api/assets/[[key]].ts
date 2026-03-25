@@ -8,34 +8,14 @@
  *   /api/assets/video/trail-123/1234567-video.mp4
  */
 
+import { verifyJwt } from "../../lib/jwt";
+
 interface Env {
   ASSETS_BUCKET: R2Bucket;
+  SUPABASE_JWT_SECRET: string;
 }
 
 const VALID_KEY_PATTERN = /^(video|gpx|thumbnail)\/[\w\-]+\/[\w\-\.]+$/;
-
-// TODO: Implement proper JWT signature verification with Supabase JWT secret
-/**
- * Validate a Supabase JWT by decoding the payload and checking expiration.
- * Returns true if the token is present and not expired.
- */
-function isValidJwt(token: string): boolean {
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return false;
-    // Base64url decode the payload
-    const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const decoded = JSON.parse(atob(payload));
-    if (!decoded.exp) return false;
-    // Check expiration (exp is in seconds)
-    if (decoded.exp <= Math.floor(Date.now() / 1000)) return false;
-    // Check issuer contains "supabase"
-    if (!decoded.iss || !decoded.iss.includes("supabase")) return false;
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const key = decodeURIComponent((context.params.key as string[]).join("/"));
@@ -78,7 +58,8 @@ export const onRequestDelete: PagesFunction<Env> = async (context) => {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
   const token = authHeader.slice(7);
-  if (!token || !isValidJwt(token)) {
+  const { valid } = await verifyJwt(token, context.env.SUPABASE_JWT_SECRET);
+  if (!valid) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
