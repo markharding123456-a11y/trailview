@@ -202,7 +202,7 @@ export default function SignUpPage() {
                   </div>
                 </div>
                 <span className="text-sm text-gray-600">
-                  I agree to the <span className="text-brand-mid font-medium underline cursor-pointer">Terms of Service</span> and <span className="text-brand-mid font-medium underline cursor-pointer">Privacy Policy</span>
+                  I agree to the <a href="/legal#terms" className="text-brand-mid font-medium underline">Terms of Service</a> and <a href="/legal#privacy" className="text-brand-mid font-medium underline">Privacy Policy</a>
                 </span>
               </label>
               {errors.terms && <p className="text-red-500 text-xs mt-1 ml-8">{errors.terms}</p>}

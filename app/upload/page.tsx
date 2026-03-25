@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useCallback } from "react";
+import { useState, useCallback, type FormEvent } from "react";
 import { parseGpx, type GpxResult } from "@/lib/gpx";
 import { saveSubmission } from "@/lib/submissions";
 
@@ -31,6 +31,8 @@ export default function UploadPage() {
     difficulty: "blue",
     description: "",
     videoLink: "",
+    contributorAgreement: false,
+    liabilityWaiver: false,
   });
   const [gpxResult, setGpxResult] = useState<GpxResult | null>(null);
   const [gpxFileName, setGpxFileName] = useState("");
@@ -98,6 +100,8 @@ export default function UploadPage() {
     }
     if (!gpxResult) e.gpx = "GPX file is required.";
     if (!form.description.trim()) e.description = "A short description is required.";
+    if (!form.contributorAgreement) e.contributorAgreement = "You must accept the Contributor Agreement.";
+    if (!form.liabilityWaiver) e.liabilityWaiver = "You must accept the Liability Waiver.";
     return e;
   }
 
@@ -130,7 +134,7 @@ export default function UploadPage() {
   }
 
   function resetForm() {
-    setForm({ trailName: "", activity: [], region: "", difficulty: "blue", description: "", videoLink: "" });
+    setForm({ trailName: "", activity: [], region: "", difficulty: "blue", description: "", videoLink: "", contributorAgreement: false, liabilityWaiver: false });
     setGpxResult(null);
     setGpxFileName("");
     setErrors({});
@@ -308,6 +312,53 @@ export default function UploadPage() {
                 className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${errors.description ? "border-red-400 bg-red-50" : "border-gray-300"}`}
               />
               {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
+            </div>
+
+            {/* Agreements */}
+            <div className="space-y-3 pt-2">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <div className="relative mt-0.5 flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={form.contributorAgreement}
+                    onChange={(e) => setForm({ ...form, contributorAgreement: e.target.checked })}
+                    className="sr-only"
+                  />
+                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                    form.contributorAgreement ? "bg-green-500 border-green-500" : errors.contributorAgreement ? "border-red-400" : "border-gray-300 group-hover:border-brand-mid"
+                  }`}>
+                    {form.contributorAgreement && (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M20 6L9 17l-5-5" /></svg>
+                    )}
+                  </div>
+                </div>
+                <span className="text-sm text-gray-600">
+                  I agree to the <Link href="/legal#contributor" className="text-brand-mid font-medium underline">Contributor Agreement</Link>, including content ownership, revenue share terms, and upload guidelines
+                </span>
+              </label>
+              {errors.contributorAgreement && <p className="text-red-500 text-xs ml-8">{errors.contributorAgreement}</p>}
+
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <div className="relative mt-0.5 flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={form.liabilityWaiver}
+                    onChange={(e) => setForm({ ...form, liabilityWaiver: e.target.checked })}
+                    className="sr-only"
+                  />
+                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                    form.liabilityWaiver ? "bg-green-500 border-green-500" : errors.liabilityWaiver ? "border-red-400" : "border-gray-300 group-hover:border-brand-mid"
+                  }`}>
+                    {form.liabilityWaiver && (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M20 6L9 17l-5-5" /></svg>
+                    )}
+                  </div>
+                </div>
+                <span className="text-sm text-gray-600">
+                  I acknowledge the <Link href="/legal#waiver" className="text-brand-mid font-medium underline">Liability Waiver &amp; Assumption of Risk</Link> and confirm I have the legal right to film and share this trail content
+                </span>
+              </label>
+              {errors.liabilityWaiver && <p className="text-red-500 text-xs ml-8">{errors.liabilityWaiver}</p>}
             </div>
 
             {/* Submit */}

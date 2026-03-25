@@ -106,12 +106,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <li><Link href="/contribute" className="hover:text-white transition-colors">Contribute</Link></li>
                   <li><Link href="/trail" className="hover:text-white transition-colors">GPS Sync Demo</Link></li>
                   <li><Link href="/signup" className="hover:text-white transition-colors">Sign Up</Link></li>
+                  <li><Link href="/legal" className="hover:text-white transition-colors">Legal</Link></li>
                 </ul>
               </div>
             </div>
             <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3">
               <p className="text-xs">2026 TrailView. Built in British Columbia.</p>
-              <p className="text-xs text-white/40">The Google Street View of off-road recreation.</p>
+              <div className="flex items-center gap-4 text-xs">
+                <Link href="/legal#terms" className="hover:text-white transition-colors">Terms</Link>
+                <Link href="/legal#privacy" className="hover:text-white transition-colors">Privacy</Link>
+                <Link href="/legal#disclaimer" className="hover:text-white transition-colors">Disclaimer</Link>
+              </div>
             </div>
           </div>
         </footer>
