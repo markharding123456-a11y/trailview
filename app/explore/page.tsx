@@ -1,21 +1,44 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { sampleTrails, activityTypes, difficultyColors, difficultyLabels, type SampleTrail } from "@/lib/sample-trails";
 
 export default function ExplorePage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-[calc(100vh-57px)]"><div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin" /></div>}>
+      <ExplorePageInner />
+    </Suspense>
+  );
+}
+
+function ExplorePageInner() {
+  const searchParams = useSearchParams();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const leafletRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
   const linesRef = useRef<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
   const [selectedTrail, setSelectedTrail] = useState<SampleTrail | null>(null);
   const [mapReady, setMapReady] = useState(false);
 
+  // Read query params on mount for pre-selected filters
+  useEffect(() => {
+    const activity = searchParams.get("activity");
+    const region = searchParams.get("region");
+    if (activity) setSelectedActivity(activity);
+    if (region) setSearchQuery(region);
+  }, [searchParams]);
+
   const filteredTrails = sampleTrails.filter((t) => {
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      if (!t.name.toLowerCase().includes(q) && !t.region.toLowerCase().includes(q)) return false;
+    }
     if (selectedActivity && !t.activityTypes.includes(selectedActivity)) return false;
     if (selectedDifficulty && t.difficulty !== selectedDifficulty) return false;
     return true;
@@ -121,6 +144,28 @@ export default function ExplorePage() {
         <div className="p-4 border-b border-gray-100 space-y-3">
           <h1 className="text-xl font-bold text-brand-dark">Explore Trails</h1>
           <p className="text-sm text-gray-400">{filteredTrails.length} trails across British Columbia</p>
+
+          {/* Search input */}
+          <div className="relative">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+            </svg>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by trail name or region..."
+              className="w-full pl-9 pr-9 py-2 rounded-lg border border-gray-200 text-sm text-brand-dark placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500 transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+              </button>
+            )}
+          </div>
 
           {/* Activity filter */}
           <div className="flex flex-wrap gap-2">

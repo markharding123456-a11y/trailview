@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Nav from "./components/nav";
 import "./globals.css";
 
 
@@ -13,48 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="bg-white min-h-screen flex flex-col">
         {/* Public Nav */}
-        <nav className="bg-brand-dark/95 backdrop-blur-sm text-white sticky top-0 z-50 border-b border-white/10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="5 3 19 12 5 21 5 3" />
-                </svg>
-              </div>
-              <span className="text-xl font-bold tracking-tight">TRAILVIEW</span>
-            </Link>
-            <div className="hidden md:flex items-center gap-6">
-              <Link href="/#how-it-works" className="text-sm text-white/80 hover:text-white transition-colors">How It Works</Link>
-              <Link href="/#activities" className="text-sm text-white/80 hover:text-white transition-colors">Activities</Link>
-              <Link href="/contribute" className="text-sm text-white/80 hover:text-white transition-colors">Contribute</Link>
-              <Link href="/upload" className="text-sm text-white/80 hover:text-white transition-colors">Upload</Link>
-              <Link
-                href="/signup"
-                className="bg-green-500 hover:bg-green-400 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-green-500/25"
-              >
-                Sign Up
-              </Link>
-              <Link
-                href="/explore"
-                className="bg-white/10 hover:bg-white/20 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-all border border-white/20"
-              >
-                Explore
-              </Link>
-            </div>
-            {/* Mobile buttons */}
-            <div className="flex md:hidden items-center gap-2">
-              <Link href="/signup" className="bg-green-500 px-3 py-2 rounded-lg text-xs font-semibold">
-                Sign Up
-              </Link>
-              <Link href="/contribute" className="text-xs text-white/70 hover:text-white transition-colors px-2 py-2">
-                Contribute
-              </Link>
-              <Link href="/explore" className="bg-white/10 border border-white/20 px-3 py-2 rounded-lg text-xs font-semibold">
-                Explore
-              </Link>
-            </div>
-          </div>
-        </nav>
+        <Nav />
 
         {/* Content */}
         <main className="flex-1">
@@ -82,18 +42,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <h4 className="text-white font-semibold text-sm mb-3">Explore</h4>
                 <ul className="space-y-2 text-sm">
                   <li><Link href="/explore" className="hover:text-white transition-colors">Trail Map</Link></li>
-                  <li><Link href="/explore" className="hover:text-white transition-colors">Mountain Biking</Link></li>
-                  <li><Link href="/explore" className="hover:text-white transition-colors">Motorcycles</Link></li>
-                  <li><Link href="/explore" className="hover:text-white transition-colors">ATV / UTV</Link></li>
+                  <li><Link href="/activities" className="hover:text-white transition-colors">Activities</Link></li>
+                  <li><Link href="/regions" className="hover:text-white transition-colors">Regions</Link></li>
+                  <li><Link href="/upload" className="hover:text-white transition-colors">Upload Trail</Link></li>
                 </ul>
               </div>
               <div>
                 <h4 className="text-white font-semibold text-sm mb-3">Regions</h4>
                 <ul className="space-y-2 text-sm">
-                  <li><Link href="/explore" className="hover:text-white transition-colors">Whistler / Squamish</Link></li>
-                  <li><Link href="/explore" className="hover:text-white transition-colors">North Shore</Link></li>
-                  <li><Link href="/explore" className="hover:text-white transition-colors">Kootenays</Link></li>
-                  <li><Link href="/explore" className="hover:text-white transition-colors">Okanagan</Link></li>
+                  <li><Link href="/regions" className="hover:text-white transition-colors">Whistler / Squamish</Link></li>
+                  <li><Link href="/regions" className="hover:text-white transition-colors">North Shore</Link></li>
+                  <li><Link href="/regions" className="hover:text-white transition-colors">Kootenays</Link></li>
+                  <li><Link href="/regions" className="hover:text-white transition-colors">Okanagan</Link></li>
                 </ul>
               </div>
               <div>
@@ -102,8 +62,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <li><Link href="/#how-it-works" className="hover:text-white transition-colors">How It Works</Link></li>
                   <li><Link href="/contribute" className="hover:text-white transition-colors">Contribute</Link></li>
                   <li><Link href="/trail" className="hover:text-white transition-colors">GPS Sync Demo</Link></li>
+                  <li><Link href="/leaderboard" className="hover:text-white transition-colors">Leaderboard</Link></li>
                   <li><Link href="/signup" className="hover:text-white transition-colors">Sign Up</Link></li>
-                <li><Link href="/admin" className="hover:text-white transition-colors">Admin</Link></li>
+                  <li><Link href="/legal" className="hover:text-white transition-colors">Legal</Link></li>
+                  <li><Link href="/admin" className="hover:text-white transition-colors">Admin</Link></li>
                 </ul>
               </div>
             </div>

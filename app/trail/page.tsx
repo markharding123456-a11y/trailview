@@ -39,6 +39,8 @@ function TrailContent() {
   const [speed, setSpeed] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Load trail from Supabase if ID provided
   useEffect(() => {
@@ -159,6 +161,16 @@ function TrailContent() {
     setSpeed(getSpeed(currentIndex));
   }, [currentIndex, currentCoord, isPlaying, getSpeed]);
 
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback: select from a temporary input
+    }
+  };
+
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
@@ -223,10 +235,49 @@ function TrailContent() {
               {contributorName && <p className="text-white/30 text-sm mt-1">Filmed by {contributorName}</p>}
               {isDemo && <span className="inline-block mt-2 px-2 py-1 bg-amber-500/20 text-amber-300 text-xs rounded font-semibold">DEMO TRAIL</span>}
             </div>
-            <div className="hidden sm:flex items-center gap-6 text-center">
+            <div className="flex flex-col items-end gap-3">
+              {/* Share button */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowShareMenu(!showShareMenu)}
+                  className="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                  </svg>
+                  Share
+                </button>
+                {showShareMenu && (
+                  <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 p-3 z-50 w-56">
+                    <button
+                      onClick={handleShare}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                    >
+                      {copied ? (
+                        <>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          <span className="text-sm font-medium text-green-500">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                          </svg>
+                          <span className="text-sm font-medium text-gray-700">Copy link</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="hidden sm:flex items-center gap-6 text-center">
               <div><div className="text-2xl font-bold text-green-400">{trailDistanceKm}</div><div className="text-xs text-white/40">km</div></div>
               <div><div className="text-2xl font-bold text-blue-400">{trailElevationGainM}</div><div className="text-xs text-white/40">m elev</div></div>
               <div><div className="text-2xl font-bold text-amber-400">{trailDurationMin}</div><div className="text-xs text-white/40">min</div></div>
+            </div>
             </div>
           </div>
         </div>

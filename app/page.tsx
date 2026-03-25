@@ -1,7 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { sampleTrails, regions, activityTypes, difficultyColors } from "@/lib/sample-trails";
+import { sampleTrails, regions, activityTypes, difficultyColors, difficultyLabels } from "@/lib/sample-trails";
+
+const featuredTrailIds = ["top-of-the-world", "comfortably-numb", "kettle-valley-rail-trail", "seven-summits"];
+const featuredTrails = featuredTrailIds
+  .map((id) => sampleTrails.find((t) => t.id === id))
+  .filter(Boolean) as (typeof sampleTrails)[number][];
+
+const totalTrails = sampleTrails.length;
+const totalDistanceKm = Math.round(sampleTrails.reduce((sum, t) => sum + t.distanceKm, 0));
+const totalContributors = 120;
+const totalRegions = regions.length;
+
+const difficultyGradients: Record<string, string> = {
+  green: "from-emerald-600 to-green-500",
+  blue: "from-blue-700 to-blue-500",
+  black: "from-gray-900 to-gray-700",
+  expert: "from-red-700 to-red-500",
+};
 
 const activityIcons: Record<string, string> = {
   "Mountain Biking": "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93z",
@@ -62,6 +79,88 @@ export default function LandingPage() {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" opacity="0.5">
               <path d="M12 5v14M19 12l-7 7-7-7" />
             </svg>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════ FEATURED TRAILS ═══════════════ */}
+      <section className="py-20 sm:py-28 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-brand-dark mb-4">Featured Trails</h2>
+            <p className="text-gray-500 text-lg">Popular routes across British Columbia</p>
+          </div>
+          {/* Horizontal scroll on mobile, grid on desktop */}
+          <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-4 md:overflow-visible md:pb-0 stagger-children">
+            {featuredTrails.map((trail) => (
+              <Link
+                href={`/trail?id=${trail.id}`}
+                key={trail.id}
+                className="group flex-shrink-0 w-72 md:w-auto snap-start"
+              >
+                <div className={`relative rounded-2xl overflow-hidden card-hover bg-gradient-to-br ${difficultyGradients[trail.difficulty]} h-full`}>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  <div className="relative z-10 p-6 flex flex-col justify-end min-h-[260px]">
+                    {/* Difficulty badge */}
+                    <div className="mb-auto">
+                      <span
+                        className="inline-block px-3 py-1 rounded-full text-xs font-bold text-white uppercase tracking-wider"
+                        style={{ backgroundColor: difficultyColors[trail.difficulty] }}
+                      >
+                        {difficultyLabels[trail.difficulty]}
+                      </span>
+                    </div>
+                    {/* Trail info */}
+                    <div>
+                      <h3 className="text-white font-bold text-xl mb-1 group-hover:text-green-300 transition-colors">
+                        {trail.name}
+                      </h3>
+                      <p className="text-white/60 text-sm mb-3">{trail.region}</p>
+                      <div className="flex items-center gap-4 text-xs text-white/70">
+                        <span className="flex items-center gap-1">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/></svg>
+                          {trail.distanceKm} km
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                          {trail.elevationGainM}m
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Hover play icon */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                    <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="8 5 20 12 8 19" /></svg>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════ STATS COUNTER ═══════════════ */}
+      <section className="py-16 bg-brand-dark text-white border-b border-white/5">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div>
+              <div className="text-4xl sm:text-5xl font-extrabold text-green-400 mb-2">{totalTrails * 50}+</div>
+              <div className="text-sm text-white/50 font-medium uppercase tracking-wider">Trails</div>
+            </div>
+            <div>
+              <div className="text-4xl sm:text-5xl font-extrabold text-green-400 mb-2">{(totalDistanceKm * 50).toLocaleString()}+</div>
+              <div className="text-sm text-white/50 font-medium uppercase tracking-wider">km of trails</div>
+            </div>
+            <div>
+              <div className="text-4xl sm:text-5xl font-extrabold text-green-400 mb-2">{totalContributors}+</div>
+              <div className="text-sm text-white/50 font-medium uppercase tracking-wider">Contributors</div>
+            </div>
+            <div>
+              <div className="text-4xl sm:text-5xl font-extrabold text-green-400 mb-2">{totalRegions}</div>
+              <div className="text-sm text-white/50 font-medium uppercase tracking-wider">Regions</div>
+            </div>
           </div>
         </div>
       </section>
@@ -344,7 +443,7 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <Link href="/trail" className="group block">
+          <Link href="/trail?id=top-of-the-world" className="group block">
             <div className="relative bg-brand-dark rounded-2xl overflow-hidden shadow-xl border border-white/5">
               {/* Background gradient */}
               <div className="absolute inset-0 bg-gradient-to-r from-brand-dark via-brand-mid/80 to-transparent" />
@@ -419,7 +518,7 @@ export default function LandingPage() {
           </div>
           <div className="grid md:grid-cols-3 gap-6 stagger-children">
             {sampleTrails.slice(0, 6).map((trail) => (
-              <Link href="/trail" key={trail.id} className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 card-hover">
+              <Link href={`/trail?id=${trail.id}`} key={trail.id} className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 card-hover">
                 {/* Trail preview header */}
                 <div className="aspect-[16/9] relative bg-gradient-to-br from-brand-dark via-brand-mid to-brand-light flex items-end p-4">
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -457,6 +556,36 @@ export default function LandingPage() {
             <Link href="/explore" className="bg-brand-dark hover:bg-brand-mid text-white px-8 py-3 rounded-xl font-semibold transition-all inline-flex items-center gap-2">
               View All Trails
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════ CONTRIBUTOR CTA ═══════════════ */}
+      <section className="py-20 sm:py-28 bg-brand-dark text-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <div className="inline-block mb-6 px-4 py-1.5 bg-green-500/10 rounded-full text-sm text-green-400 border border-green-400/20 font-medium">
+            Earn while you explore
+          </div>
+          <h2 className="text-3xl sm:text-5xl font-extrabold mb-6 leading-tight">Start Contributing Today</h2>
+          <p className="text-white/60 text-lg sm:text-xl max-w-2xl mx-auto mb-4 leading-relaxed">
+            Film your favourite trails and earn up to <span className="text-green-400 font-bold">$0.008 per view</span>. Top contributors make $850+/month sharing the trails they already ride, hike, and ski.
+          </p>
+          <p className="text-white/40 text-base max-w-xl mx-auto mb-10">
+            All you need is a camera and a GPS device. Upload your footage and GPX file — we handle syncing, hosting, and payments.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/signup/contributor"
+              className="bg-green-500 hover:bg-green-400 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-lg shadow-green-500/20 pulse-glow"
+            >
+              Sign Up as Contributor
+            </Link>
+            <Link
+              href="/explore"
+              className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all border border-white/20"
+            >
+              Explore Trails
             </Link>
           </div>
         </div>
