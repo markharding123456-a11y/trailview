@@ -10,7 +10,8 @@
     "build:cloudflare": "DEPLOY_TARGET=cloudflare next build",
     "deploy:cloudflare": "DEPLOY_TARGET=cloudflare next build && npx wrangler pages deploy out --project-name trailview",
     "start": "next start",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "npx playwright test"
   },
   "keywords": [],
   "author": "",
