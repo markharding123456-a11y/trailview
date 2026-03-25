@@ -167,10 +167,10 @@ function ContributorContent() {
           <h3 className="text-xl font-bold mb-2">Want to contribute?</h3>
           <p className="text-white/60 mb-6">Film trails, share them with the community, and earn per view.</p>
           <div className="flex gap-3 justify-center">
-            <Link href="/signup/contributor" className="bg-green-500 hover:bg-green-400 px-6 py-3 rounded-xl font-semibold transition-colors">
+            <Link href="/signup/contributor" className="bg-green-500 hover:bg-green-400 text-white px-6 py-3 rounded-xl font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2">
               Sign Up as Contributor
             </Link>
-            <Link href="/contribute" className="bg-white/10 hover:bg-white/20 px-6 py-3 rounded-xl font-semibold transition-colors border border-white/20">
+            <Link href="/contribute" className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-semibold transition-colors border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2">
               Learn More
             </Link>
           </div>
