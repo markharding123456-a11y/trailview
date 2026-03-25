@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import FormField from "@/app/components/form-field";
 
 const ACTIVITIES = [
   "Mountain Biking", "Motorcycle", "ATV/UTV", "Skiing/Snowboarding",
@@ -25,7 +26,9 @@ export default function SignUpPage() {
     terms: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function toggleActivity(activity: string) {
     setForm((f) => ({
@@ -34,6 +37,51 @@ export default function SignUpPage() {
         ? f.activities.filter((a) => a !== activity)
         : [...f.activities, activity],
     }));
+  }
+
+  const validateField = useCallback((field: string, value: string | boolean) => {
+    switch (field) {
+      case "name":
+        if (!(value as string).trim()) return "Name is required.";
+        break;
+      case "email":
+        if (!(value as string).trim()) return "Email is required.";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value as string)) return "Enter a valid email.";
+        break;
+      case "password":
+        if (!(value as string)) return "Password is required.";
+        if ((value as string).length < 8) return "Password must be at least 8 characters.";
+        break;
+      case "confirmPassword":
+        if ((value as string) !== form.password) return "Passwords do not match.";
+        break;
+    }
+    return "";
+  }, [form.password]);
+
+  function handleBlur(field: string) {
+    setTouched((t) => ({ ...t, [field]: true }));
+    const val = form[field as keyof typeof form];
+    const error = validateField(field, typeof val === "string" || typeof val === "boolean" ? val : String(val));
+    setErrors((e) => {
+      if (error) return { ...e, [field]: error };
+      const next = { ...e };
+      delete next[field];
+      return next;
+    });
+  }
+
+  function handleChange(field: string, value: string | boolean) {
+    setForm((f) => ({ ...f, [field]: value }));
+    if (touched[field]) {
+      const error = validateField(field, value);
+      setErrors((e) => {
+        if (error) return { ...e, [field]: error };
+        const next = { ...e };
+        delete next[field];
+        return next;
+      });
+    }
   }
 
   function validate() {
@@ -48,11 +96,24 @@ export default function SignUpPage() {
     return e;
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  const isFormValid =
+    form.name.trim() !== "" &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) &&
+    form.password.length >= 8 &&
+    form.password === form.confirmPassword &&
+    form.terms;
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const errs = validate();
     setErrors(errs);
-    if (Object.keys(errs).length === 0) setSubmitted(true);
+    setTouched({ name: true, email: true, password: true, confirmPassword: true, terms: true });
+    if (Object.keys(errs).length === 0) {
+      setIsSubmitting(true);
+      await new Promise((r) => setTimeout(r, 800));
+      setIsSubmitting(false);
+      setSubmitted(true);
+    }
   }
 
   if (submitted) {
@@ -96,56 +157,53 @@ export default function SignUpPage() {
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
 
             {/* Name */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Full Name</label>
+            <FormField label="Full Name" error={touched.name ? errors.name : undefined} required>
               <input
                 type="text"
                 value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                onChange={(e) => handleChange("name", e.target.value)}
+                onBlur={() => handleBlur("name")}
                 placeholder="Jane Smith"
-                className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${errors.name ? "border-red-400 bg-red-50" : "border-gray-300"}`}
+                className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${touched.name && errors.name ? "border-red-400 bg-red-50" : "border-gray-300"}`}
               />
-              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-            </div>
+            </FormField>
 
             {/* Email */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
+            <FormField label="Email Address" error={touched.email ? errors.email : undefined} required>
               <input
                 type="email"
                 value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                onChange={(e) => handleChange("email", e.target.value)}
+                onBlur={() => handleBlur("email")}
                 placeholder="jane@example.com"
-                className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${errors.email ? "border-red-400 bg-red-50" : "border-gray-300"}`}
+                className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${touched.email && errors.email ? "border-red-400 bg-red-50" : "border-gray-300"}`}
               />
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-            </div>
+            </FormField>
 
             {/* Password */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
+            <FormField label="Password" error={touched.password ? errors.password : undefined} required>
               <input
                 type="password"
                 value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                onChange={(e) => handleChange("password", e.target.value)}
+                onBlur={() => handleBlur("password")}
                 placeholder="Minimum 8 characters"
-                className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${errors.password ? "border-red-400 bg-red-50" : "border-gray-300"}`}
+                className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${touched.password && errors.password ? "border-red-400 bg-red-50" : "border-gray-300"}`}
               />
-              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-            </div>
+              <p className="text-xs text-gray-400 mt-1">Password must be at least 8 characters</p>
+            </FormField>
 
             {/* Confirm Password */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Confirm Password</label>
+            <FormField label="Confirm Password" error={touched.confirmPassword ? errors.confirmPassword : undefined} required>
               <input
                 type="password"
                 value={form.confirmPassword}
-                onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                onChange={(e) => handleChange("confirmPassword", e.target.value)}
+                onBlur={() => handleBlur("confirmPassword")}
                 placeholder="Re-enter your password"
-                className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${errors.confirmPassword ? "border-red-400 bg-red-50" : "border-gray-300"}`}
+                className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${touched.confirmPassword && errors.confirmPassword ? "border-red-400 bg-red-50" : "border-gray-300"}`}
               />
-              {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
-            </div>
+            </FormField>
 
             {/* Favorite Activities */}
             <div>
@@ -190,7 +248,7 @@ export default function SignUpPage() {
                   <input
                     type="checkbox"
                     checked={form.terms}
-                    onChange={(e) => setForm({ ...form, terms: e.target.checked })}
+                    onChange={(e) => handleChange("terms", e.target.checked)}
                     className="sr-only"
                   />
                   <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
@@ -211,9 +269,16 @@ export default function SignUpPage() {
             {/* Submit */}
             <button
               type="submit"
-              className="w-full py-3.5 bg-green-500 hover:bg-green-400 text-white font-bold text-base rounded-xl transition-colors shadow-lg hover:shadow-green-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
+              disabled={!isFormValid || isSubmitting}
+              className="w-full py-3.5 bg-green-500 hover:bg-green-400 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-base rounded-xl transition-colors shadow-lg hover:shadow-green-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2 flex items-center justify-center gap-2"
             >
-              Create Account
+              {isSubmitting && (
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              )}
+              {isSubmitting ? "Creating Account..." : "Create Account"}
             </button>
           </form>
 

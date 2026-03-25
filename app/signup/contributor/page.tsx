@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import FormField from "@/app/components/form-field";
 
 const ACTIVITIES = [
   "Mountain Biking", "Motorcycle", "ATV/UTV", "Skiing/Snowboarding",
@@ -26,6 +27,8 @@ const EXPERIENCE_LEVELS = [
   "Professional Videographer",
 ];
 
+const BIO_MAX_LENGTH = 500;
+
 export default function ContributorSignUpPage() {
   const [form, setForm] = useState({
     name: "",
@@ -42,15 +45,68 @@ export default function ContributorSignUpPage() {
     contributorAgreement: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function toggleItem(field: "activities" | "regions" | "equipment", value: string) {
-    setForm((f) => ({
-      ...f,
-      [field]: f[field].includes(value)
+    setForm((f) => {
+      const updated = f[field].includes(value)
         ? f[field].filter((v) => v !== value)
-        : [...f[field], value],
-    }));
+        : [...f[field], value];
+      return { ...f, [field]: updated };
+    });
+    // Clear validation error for the field when user selects something
+    setErrors((e) => {
+      const next = { ...e };
+      delete next[field];
+      return next;
+    });
+  }
+
+  const validateField = useCallback((field: string, value: string | boolean) => {
+    switch (field) {
+      case "name":
+        if (!(value as string).trim()) return "Name is required.";
+        break;
+      case "email":
+        if (!(value as string).trim()) return "Email is required.";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value as string)) return "Enter a valid email.";
+        break;
+      case "password":
+        if (!(value as string)) return "Password is required.";
+        if ((value as string).length < 8) return "Password must be at least 8 characters.";
+        break;
+      case "confirmPassword":
+        if ((value as string) !== form.password) return "Passwords do not match.";
+        break;
+    }
+    return "";
+  }, [form.password]);
+
+  function handleBlur(field: string) {
+    setTouched((t) => ({ ...t, [field]: true }));
+    const val = form[field as keyof typeof form];
+    const error = validateField(field, typeof val === "string" || typeof val === "boolean" ? val : String(val));
+    setErrors((e) => {
+      if (error) return { ...e, [field]: error };
+      const next = { ...e };
+      delete next[field];
+      return next;
+    });
+  }
+
+  function handleChange(field: string, value: string | boolean) {
+    setForm((f) => ({ ...f, [field]: value }));
+    if (touched[field]) {
+      const error = validateField(field, value);
+      setErrors((e) => {
+        if (error) return { ...e, [field]: error };
+        const next = { ...e };
+        delete next[field];
+        return next;
+      });
+    }
   }
 
   function validate() {
@@ -61,16 +117,34 @@ export default function ContributorSignUpPage() {
     if (!form.password) e.password = "Password is required.";
     else if (form.password.length < 8) e.password = "Password must be at least 8 characters.";
     if (form.password !== form.confirmPassword) e.confirmPassword = "Passwords do not match.";
+    if (form.activities.length === 0) e.activities = "Select at least one activity.";
+    if (form.regions.length === 0) e.regions = "Select at least one region.";
     if (!form.terms) e.terms = "You must accept the Terms of Service.";
     if (!form.contributorAgreement) e.contributorAgreement = "You must accept the Contributor Agreement.";
     return e;
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  const isFormValid =
+    form.name.trim() !== "" &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) &&
+    form.password.length >= 8 &&
+    form.password === form.confirmPassword &&
+    form.activities.length > 0 &&
+    form.regions.length > 0 &&
+    form.terms &&
+    form.contributorAgreement;
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const errs = validate();
     setErrors(errs);
-    if (Object.keys(errs).length === 0) setSubmitted(true);
+    setTouched({ name: true, email: true, password: true, confirmPassword: true });
+    if (Object.keys(errs).length === 0) {
+      setIsSubmitting(true);
+      await new Promise((r) => setTimeout(r, 800));
+      setIsSubmitting(false);
+      setSubmitted(true);
+    }
   }
 
   if (submitted) {
@@ -132,67 +206,64 @@ export default function ContributorSignUpPage() {
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <form onSubmit={handleSubmit} noValidate className="space-y-6">
 
-            {/* ── ACCOUNT DETAILS ── */}
+            {/* -- ACCOUNT DETAILS -- */}
             <div>
               <h3 className="text-sm font-bold text-brand-dark uppercase tracking-wider mb-4 flex items-center gap-2">
                 <span className="w-5 h-5 bg-brand-dark text-white rounded text-xs flex items-center justify-center">1</span>
                 Account Details
               </h3>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Full Name</label>
+                <FormField label="Full Name" error={touched.name ? errors.name : undefined} required>
                   <input
                     type="text"
                     value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    onChange={(e) => handleChange("name", e.target.value)}
+                    onBlur={() => handleBlur("name")}
                     placeholder="Jane Smith"
-                    className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${errors.name ? "border-red-400 bg-red-50" : "border-gray-300"}`}
+                    className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${touched.name && errors.name ? "border-red-400 bg-red-50" : "border-gray-300"}`}
                   />
-                  {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-                </div>
+                </FormField>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
+                <FormField label="Email Address" error={touched.email ? errors.email : undefined} required>
                   <input
                     type="email"
                     value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    onChange={(e) => handleChange("email", e.target.value)}
+                    onBlur={() => handleBlur("email")}
                     placeholder="jane@example.com"
-                    className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${errors.email ? "border-red-400 bg-red-50" : "border-gray-300"}`}
+                    className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${touched.email && errors.email ? "border-red-400 bg-red-50" : "border-gray-300"}`}
                   />
-                  {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-                </div>
+                </FormField>
 
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
+                  <FormField label="Password" error={touched.password ? errors.password : undefined} required>
                     <input
                       type="password"
                       value={form.password}
-                      onChange={(e) => setForm({ ...form, password: e.target.value })}
+                      onChange={(e) => handleChange("password", e.target.value)}
+                      onBlur={() => handleBlur("password")}
                       placeholder="Min. 8 characters"
-                      className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${errors.password ? "border-red-400 bg-red-50" : "border-gray-300"}`}
+                      className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${touched.password && errors.password ? "border-red-400 bg-red-50" : "border-gray-300"}`}
                     />
-                    {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Confirm Password</label>
+                    <p className="text-xs text-gray-400 mt-1">Password must be at least 8 characters</p>
+                  </FormField>
+                  <FormField label="Confirm Password" error={touched.confirmPassword ? errors.confirmPassword : undefined} required>
                     <input
                       type="password"
                       value={form.confirmPassword}
-                      onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                      onChange={(e) => handleChange("confirmPassword", e.target.value)}
+                      onBlur={() => handleBlur("confirmPassword")}
                       placeholder="Re-enter password"
-                      className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${errors.confirmPassword ? "border-red-400 bg-red-50" : "border-gray-300"}`}
+                      className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${touched.confirmPassword && errors.confirmPassword ? "border-red-400 bg-red-50" : "border-gray-300"}`}
                     />
-                    {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
-                  </div>
+                  </FormField>
                 </div>
               </div>
             </div>
 
             <div className="border-t border-gray-100" />
 
-            {/* ── CONTENT PROFILE ── */}
+            {/* -- CONTENT PROFILE -- */}
             <div>
               <h3 className="text-sm font-bold text-brand-dark uppercase tracking-wider mb-4 flex items-center gap-2">
                 <span className="w-5 h-5 bg-brand-dark text-white rounded text-xs flex items-center justify-center">2</span>
@@ -202,8 +273,10 @@ export default function ContributorSignUpPage() {
 
                 {/* Activities filmed */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Activities You Film <span className="text-gray-400 font-normal">(select all that apply)</span></label>
-                  <div className="flex flex-wrap gap-2">
+                  <label className="block text-sm font-medium text-brand-dark mb-2">
+                    Activities You Film <span className="text-red-500">*</span>
+                  </label>
+                  <div className={`flex flex-wrap gap-2 p-3 rounded-lg border-2 transition-colors ${errors.activities ? "border-red-300 bg-red-50" : "border-transparent"}`}>
                     {ACTIVITIES.map((activity) => (
                       <button
                         key={activity}
@@ -219,12 +292,15 @@ export default function ContributorSignUpPage() {
                       </button>
                     ))}
                   </div>
+                  {errors.activities && <p className="text-xs text-red-500 mt-1">{errors.activities}</p>}
                 </div>
 
                 {/* Regions */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Regions You Cover <span className="text-gray-400 font-normal">(select all that apply)</span></label>
-                  <div className="flex flex-wrap gap-2">
+                  <label className="block text-sm font-medium text-brand-dark mb-2">
+                    Regions You Cover <span className="text-red-500">*</span>
+                  </label>
+                  <div className={`flex flex-wrap gap-2 p-3 rounded-lg border-2 transition-colors ${errors.regions ? "border-red-300 bg-red-50" : "border-transparent"}`}>
                     {REGIONS.map((region) => (
                       <button
                         key={region}
@@ -240,6 +316,7 @@ export default function ContributorSignUpPage() {
                       </button>
                     ))}
                   </div>
+                  {errors.regions && <p className="text-xs text-red-500 mt-1">{errors.regions}</p>}
                 </div>
 
                 {/* Equipment */}
@@ -282,7 +359,7 @@ export default function ContributorSignUpPage() {
 
             <div className="border-t border-gray-100" />
 
-            {/* ── ABOUT YOU ── */}
+            {/* -- ABOUT YOU -- */}
             <div>
               <h3 className="text-sm font-bold text-brand-dark uppercase tracking-wider mb-4 flex items-center gap-2">
                 <span className="w-5 h-5 bg-brand-dark text-white rounded text-xs flex items-center justify-center">3</span>
@@ -293,11 +370,16 @@ export default function ContributorSignUpPage() {
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Short Bio <span className="text-gray-400 font-normal">(optional)</span></label>
                   <textarea
                     value={form.bio}
-                    onChange={(e) => setForm({ ...form, bio: e.target.value })}
+                    onChange={(e) => {
+                      if (e.target.value.length <= BIO_MAX_LENGTH) {
+                        setForm({ ...form, bio: e.target.value });
+                      }
+                    }}
                     placeholder="Tell us about your outdoor experience — what trails you ride, how long you've been at it, what regions you know best..."
                     rows={4}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors resize-none"
                   />
+                  <p className="text-xs text-gray-400 mt-1 text-right">{form.bio.length}/{BIO_MAX_LENGTH}</p>
                 </div>
 
                 <div>
@@ -317,14 +399,19 @@ export default function ContributorSignUpPage() {
 
             <div className="border-t border-gray-100" />
 
-            {/* ── AGREEMENTS ── */}
+            {/* -- AGREEMENTS -- */}
             <div className="space-y-3">
               <label className={`flex items-start gap-3 cursor-pointer group`}>
                 <div className="relative mt-0.5 flex-shrink-0">
                   <input
                     type="checkbox"
                     checked={form.terms}
-                    onChange={(e) => setForm({ ...form, terms: e.target.checked })}
+                    onChange={(e) => {
+                      setForm({ ...form, terms: e.target.checked });
+                      if (e.target.checked) {
+                        setErrors((prev) => { const next = { ...prev }; delete next.terms; return next; });
+                      }
+                    }}
                     className="sr-only"
                   />
                   <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
@@ -346,7 +433,12 @@ export default function ContributorSignUpPage() {
                   <input
                     type="checkbox"
                     checked={form.contributorAgreement}
-                    onChange={(e) => setForm({ ...form, contributorAgreement: e.target.checked })}
+                    onChange={(e) => {
+                      setForm({ ...form, contributorAgreement: e.target.checked });
+                      if (e.target.checked) {
+                        setErrors((prev) => { const next = { ...prev }; delete next.contributorAgreement; return next; });
+                      }
+                    }}
                     className="sr-only"
                   />
                   <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
@@ -367,9 +459,16 @@ export default function ContributorSignUpPage() {
             {/* Submit */}
             <button
               type="submit"
-              className="w-full py-4 bg-green-500 hover:bg-green-400 text-white font-bold text-base rounded-xl transition-colors shadow-lg hover:shadow-green-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
+              disabled={!isFormValid || isSubmitting}
+              className="w-full py-4 bg-green-500 hover:bg-green-400 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-base rounded-xl transition-colors shadow-lg hover:shadow-green-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2 flex items-center justify-center gap-2"
             >
-              Sign Up as Contributor
+              {isSubmitting && (
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              )}
+              {isSubmitting ? "Submitting..." : "Sign Up as Contributor"}
             </button>
           </form>
 

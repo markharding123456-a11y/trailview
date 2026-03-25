@@ -4,6 +4,11 @@ export const metadata: Metadata = {
   title: "Activities — TrailView",
   description:
     "Browse trails by activity type: mountain biking, motorcycles, ATVs, skiing, hiking, hunting, and more.",
+  openGraph: {
+    title: "Activities — TrailView",
+    description:
+      "Browse trails by activity type: mountain biking, motorcycles, ATVs, skiing, hiking, hunting, and more.",
+  },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

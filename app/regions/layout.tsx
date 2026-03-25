@@ -4,6 +4,11 @@ export const metadata: Metadata = {
   title: "Regions — TrailView",
   description:
     "Explore trail regions across British Columbia: Whistler, North Shore, Kootenays, Okanagan, and more.",
+  openGraph: {
+    title: "Regions — TrailView",
+    description:
+      "Explore trail regions across British Columbia: Whistler, North Shore, Kootenays, Okanagan, and more.",
+  },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

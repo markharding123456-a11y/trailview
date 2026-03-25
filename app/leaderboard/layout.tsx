@@ -4,6 +4,11 @@ export const metadata: Metadata = {
   title: "Leaderboard — TrailView",
   description:
     "Top TrailView contributors ranked by trails published, distance covered, and regions explored.",
+  openGraph: {
+    title: "Leaderboard — TrailView",
+    description:
+      "Top TrailView contributors ranked by trails published, distance covered, and regions explored.",
+  },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

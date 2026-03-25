@@ -1,12 +1,40 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Nav from "./components/nav";
+import CookieConsent from "./components/cookie-consent";
 import "./globals.css";
 
 
 export const metadata: Metadata = {
   title: "TrailView — See Every Trail Before You Go",
-  description: "GPS-synced first-person trail videos for every outdoor activity — mountain biking, motorcycles, ATVs, skiing, snowmobiling, hiking, hunting, horseback riding, and more across British Columbia.",
+  description:
+    "GPS-synced first-person trail videos for every outdoor activity — mountain biking, motorcycles, ATVs, skiing, snowmobiling, hiking, hunting, horseback riding, and more across British Columbia.",
+  metadataBase: new URL("https://trailview.app"),
+  openGraph: {
+    title: "TrailView — See Every Trail Before You Go",
+    description:
+      "GPS-synced first-person trail videos for mountain biking, motorcycles, skiing, hiking, and more across British Columbia.",
+    siteName: "TrailView",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TrailView — See Every Trail Before You Go",
+    description:
+      "GPS-synced first-person trail videos across British Columbia.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  icons: {
+    icon: { url: "/favicon.svg", type: "image/svg+xml" },
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/manifest.json",
+  other: {
+    "theme-color": "#0a1628",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -77,6 +105,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
         </footer>
+
+        {/* Cookie consent banner */}
+        <CookieConsent />
       </body>
     </html>
   );

@@ -7,6 +7,7 @@ import { saveSubmission } from "@/lib/submissions";
 import { createSubmission } from "@/lib/supabase";
 import { uploadGpx, uploadVideo, formatFileSize, type UploadProgress } from "@/lib/cloudflare";
 import { getSession } from "@/lib/auth";
+import { ToastProvider, useToast } from "@/app/components/toast";
 
 const ACTIVITIES = [
   "Mountain Biking", "Motorcycle", "ATV/UTV", "Skiing/Snowboarding",
@@ -27,6 +28,15 @@ const DIFFICULTIES = [
 ];
 
 export default function UploadPage() {
+  return (
+    <ToastProvider>
+      <UploadPageInner />
+    </ToastProvider>
+  );
+}
+
+function UploadPageInner() {
+  const { showToast } = useToast();
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [accessToken, setAccessToken] = useState<string | undefined>(undefined);
 
@@ -178,6 +188,7 @@ export default function UploadPage() {
           videoUrl = result.url;
         } catch {
           setErrors({ video: "Video upload failed. Please try again." });
+          showToast("Video upload failed. Please try again.", "error");
           setIsUploading(false);
           return;
         }
@@ -224,8 +235,10 @@ export default function UploadPage() {
       }
 
       setSubmitted(true);
+      showToast("Trail submitted successfully!", "success");
     } catch {
       setErrors({ submit: "Something went wrong. Please try again." });
+      showToast("Something went wrong. Please try again.", "error");
     } finally {
       setIsUploading(false);
       setUploadProgress(null);
