@@ -8,9 +8,12 @@
  * Body: multipart/form-data with fields: file, trailId, type
  */
 
+import { verifyJwt } from "../lib/jwt";
+
 interface Env {
   ASSETS_BUCKET: R2Bucket;
   TRAIL_CACHE: KVNamespace;
+  SUPABASE_JWT_SECRET: string;
 }
 
 const MAX_SIZES: Record<string, number> = {
@@ -65,6 +68,25 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     if (!token || !isValidJwt(token)) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    // Decode JWT payload to extract user ID for rate limiting
+    const jwtPayload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+
+    // --- Rate limiting ---
+    const userId = jwtPayload.sub || 'anonymous';
+    const rateLimitKey = `rate-limit:upload:${userId}`;
+    const currentCount = parseInt(await context.env.TRAIL_CACHE.get(rateLimitKey) || '0');
+
+    if (currentCount >= 10) {
+      return Response.json(
+        { error: "Rate limit exceeded. Maximum 10 uploads per hour." },
+        { status: 429, headers: { "X-RateLimit-Limit": "10", "X-RateLimit-Remaining": "0" } }
+      );
+    }
+
+    // Increment count with 1-hour TTL
+    await context.env.TRAIL_CACHE.put(rateLimitKey, String(currentCount + 1), { expirationTtl: 3600 });
+    const remaining = 10 - (currentCount + 1);
 
     const formData = await context.request.formData();
     const file = formData.get("file") as File | null;
@@ -141,7 +163,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       url,
       size: file.size,
     }, {
-      headers: { "X-Content-Type-Options": "nosniff" },
+      headers: {
+        "X-Content-Type-Options": "nosniff",
+        "X-RateLimit-Limit": "10",
+        "X-RateLimit-Remaining": String(remaining),
+      },
     });
   } catch {
     return Response.json({ error: "Upload failed" }, {

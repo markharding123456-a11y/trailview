@@ -13,7 +13,7 @@ import {
   type Trail,
 } from "@/lib/supabase";
 import { getAssetUrl, formatFileSize } from "@/lib/cloudflare";
-import { signIn, signOut, getSession } from "@/lib/auth";
+import { signIn, signOut, getSession, isAdmin } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -33,6 +33,7 @@ type Tab = "submissions" | "trails" | "assets";
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState<boolean | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -53,13 +54,23 @@ export default function AdminPage() {
 
   // Check for existing session on mount
   useEffect(() => {
-    getSession().then((session) => {
-      if (session) setAuthenticated(true);
+    getSession().then(async (session) => {
+      if (session) {
+        setAuthenticated(true);
+        const adminCheck = await isAdmin();
+        setIsAdminUser(adminCheck);
+      }
       setAuthLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setAuthenticated(!!session);
+      if (session) {
+        const adminCheck = await isAdmin();
+        setIsAdminUser(adminCheck);
+      } else {
+        setIsAdminUser(null);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -71,6 +82,8 @@ export default function AdminPage() {
     try {
       await signIn(email, password);
       setAuthenticated(true);
+      const adminCheck = await isAdmin();
+      setIsAdminUser(adminCheck);
     } catch (err: unknown) {
       setAuthError(err instanceof Error ? err.message : "Login failed. Check your credentials.");
     }

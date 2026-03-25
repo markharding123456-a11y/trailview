@@ -26,3 +26,22 @@ export async function getUser(): Promise<User | null> {
   if (error) return null;
   return data.user;
 }
+
+export async function isAdmin(): Promise<boolean> {
+  const session = await getSession();
+  if (!session?.user?.id) return false;
+
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("id")
+    .eq("user_id", session.user.id)
+    .eq("role", "admin")
+    .maybeSingle();
+
+  if (error) {
+    console.error("Failed to check admin role:", error);
+    return false;
+  }
+
+  return !!data;
+}

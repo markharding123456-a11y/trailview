@@ -120,3 +120,23 @@ CREATE POLICY "Public can read regions" ON regions
 
 CREATE POLICY "Authenticated users can manage regions" ON regions
   FOR ALL USING (auth.role() = 'authenticated');
+
+-- User roles for access control
+CREATE TABLE IF NOT EXISTS user_roles (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL DEFAULT 'contributor' CHECK (role IN ('contributor', 'admin')),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, role)
+);
+
+-- RLS for user_roles
+ALTER TABLE user_roles ENABLE ROW LEVEL SECURITY;
+
+-- Anyone authenticated can read roles (needed to check own role)
+CREATE POLICY "Authenticated users can read roles" ON user_roles
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+-- Only service_role can manage roles (admin operations via Supabase dashboard)
+CREATE POLICY "Service role can manage roles" ON user_roles
+  FOR ALL USING (auth.jwt() ->> 'role' = 'service_role');

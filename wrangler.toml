@@ -26,3 +26,4 @@ id = ""  # Paste your KV namespace ID here
 
 [vars]
 ENVIRONMENT = "production"
+SUPABASE_JWT_SECRET = ""  # Fill in from Supabase Dashboard > Settings > API > JWT Secret
