@@ -66,7 +66,7 @@ export default function SignUpPage() {
           </div>
           <h2 className="text-2xl font-bold text-brand-dark mb-3">You&apos;re on the list!</h2>
           <p className="text-gray-500 mb-6">Thanks for signing up! We&apos;ll be in touch soon with early access details.</p>
-          <Link href="/" className="bg-green-500 hover:bg-green-400 text-white px-6 py-3 rounded-xl font-semibold transition-all inline-block">
+          <Link href="/" className="bg-green-500 hover:bg-green-400 text-white px-6 py-3 rounded-xl font-semibold transition-colors inline-block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2">
             Back to TrailView
           </Link>
         </div>
@@ -156,7 +156,7 @@ export default function SignUpPage() {
                     key={activity}
                     type="button"
                     onClick={() => toggleActivity(activity)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 ${
                       form.activities.includes(activity)
                         ? "bg-brand-dark text-white border-brand-dark shadow"
                         : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200"
@@ -211,7 +211,7 @@ export default function SignUpPage() {
             {/* Submit */}
             <button
               type="submit"
-              className="w-full py-3.5 bg-green-500 hover:bg-green-400 text-white font-bold text-base rounded-xl transition-all shadow-lg hover:shadow-green-500/25"
+              className="w-full py-3.5 bg-green-500 hover:bg-green-400 text-white font-bold text-base rounded-xl transition-colors shadow-lg hover:shadow-green-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
             >
               Create Account
             </button>
