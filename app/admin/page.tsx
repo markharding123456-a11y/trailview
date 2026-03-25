@@ -463,20 +463,20 @@ export default function AdminPage() {
               <button
                 onClick={handleApprove}
                 disabled={!selectedRegionId || processing}
-                className="flex-1 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-400 disabled:bg-gray-200 disabled:text-gray-400 transition-colors"
+                className="flex-1 py-3 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-400 disabled:bg-gray-200 disabled:text-gray-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
               >
                 {processing ? "..." : "Approve & Publish"}
               </button>
               <button
                 onClick={handleReject}
                 disabled={processing}
-                className="flex-1 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-400 disabled:bg-gray-200 disabled:text-gray-400 transition-colors"
+                className="flex-1 py-3 bg-red-500 text-white font-semibold rounded-xl hover:bg-red-400 disabled:bg-gray-200 disabled:text-gray-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2"
               >
                 {processing ? "..." : "Reject"}
               </button>
               <button
                 onClick={() => setReviewing(null)}
-                className="px-6 py-3 bg-gray-100 text-gray-600 font-semibold rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-6 py-3 bg-gray-100 text-gray-600 font-semibold rounded-xl hover:bg-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-dark focus-visible:ring-offset-2"
               >
                 Cancel
               </button>
