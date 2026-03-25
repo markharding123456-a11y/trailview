@@ -13,8 +13,8 @@ import {
   type Trail,
 } from "@/lib/supabase";
 import { getAssetUrl, formatFileSize } from "@/lib/cloudflare";
-
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "trailview-admin";
+import { signIn, signOut, getSession } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-amber-100 text-amber-800",
@@ -33,8 +33,10 @@ type Tab = "submissions" | "trails" | "assets";
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [authError, setAuthError] = useState(false);
+  const [authError, setAuthError] = useState("");
 
   const [tab, setTab] = useState<Tab>("submissions");
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -49,14 +51,34 @@ export default function AdminPage() {
   const [rejectNotes, setRejectNotes] = useState("");
   const [processing, setProcessing] = useState(false);
 
-  function handleLogin(e: React.FormEvent) {
+  // Check for existing session on mount
+  useEffect(() => {
+    getSession().then((session) => {
+      if (session) setAuthenticated(true);
+      setAuthLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
+    setAuthError("");
+    try {
+      await signIn(email, password);
       setAuthenticated(true);
-      setAuthError(false);
-    } else {
-      setAuthError(true);
+    } catch (err: unknown) {
+      setAuthError(err instanceof Error ? err.message : "Login failed. Check your credentials.");
     }
+  }
+
+  async function handleSignOut() {
+    await signOut();
+    setAuthenticated(false);
   }
 
   useEffect(() => {
@@ -120,6 +142,14 @@ export default function AdminPage() {
 
   const liveTrails = trails.filter((t) => t.video_status === "live");
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-10 h-10 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   if (!authenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -132,19 +162,30 @@ export default function AdminPage() {
               </svg>
             </div>
             <h1 className="text-xl font-bold text-brand-dark">Admin Dashboard</h1>
-            <p className="text-sm text-gray-500 mt-1">Enter password to continue</p>
+            <p className="text-sm text-gray-500 mt-1">Sign in with your admin account</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+              autoComplete="email"
+              className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid ${
+                authError ? "border-red-400 bg-red-50" : "border-gray-300"
+              }`}
+            />
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
+              autoComplete="current-password"
               className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid ${
                 authError ? "border-red-400 bg-red-50" : "border-gray-300"
               }`}
             />
-            {authError && <p className="text-red-500 text-xs">Incorrect password.</p>}
+            {authError && <p className="text-red-500 text-xs">{authError}</p>}
             <button type="submit" className="w-full py-3 bg-brand-dark hover:bg-brand-dark/90 text-white font-semibold rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-dark focus-visible:ring-offset-2">
               Sign In
             </button>
@@ -171,6 +212,12 @@ export default function AdminPage() {
           <div className="flex items-center gap-4 text-sm">
             <span className="text-green-400 font-medium">{liveTrails.length} live trails</span>
             <span className="text-amber-400 font-medium">{submissions.filter(s => s.status === "pending").length} pending</span>
+            <button
+              onClick={handleSignOut}
+              className="ml-2 px-3 py-1.5 text-xs font-medium text-white/70 hover:text-white border border-white/20 hover:border-white/40 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </div>

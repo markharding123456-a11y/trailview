@@ -36,5 +36,64 @@ CREATE TABLE IF NOT EXISTS submissions (
   submitted_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- ===========================================
+-- Row Level Security (RLS) — idempotent
+-- ===========================================
+-- Enable RLS on all tables (safe to re-run)
+ALTER TABLE trails ENABLE ROW LEVEL SECURITY;
+ALTER TABLE regions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE submissions ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow all access to submissions" ON submissions FOR ALL USING (true) WITH CHECK (true);
+
+-- Drop old permissive policies if they exist
+DROP POLICY IF EXISTS "Allow all access to trails" ON trails;
+DROP POLICY IF EXISTS "Allow all access to regions" ON regions;
+DROP POLICY IF EXISTS "Allow all access to submissions" ON submissions;
+
+-- TRAILS: public read, authenticated write
+DO $$ BEGIN
+  CREATE POLICY "Public can read trails" ON trails FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Authenticated users can insert trails" ON trails
+    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Authenticated users can update trails" ON trails
+    FOR UPDATE USING (auth.role() = 'authenticated');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- SUBMISSIONS: authenticated create, own-read + authenticated read/update
+DO $$ BEGIN
+  CREATE POLICY "Authenticated users can create submissions" ON submissions
+    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Authenticated users can read own submissions" ON submissions
+    FOR SELECT USING (auth.uid()::text = contributor_id OR auth.role() = 'authenticated');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Authenticated users can update submissions" ON submissions
+    FOR UPDATE USING (auth.role() = 'authenticated');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- REGIONS: public read, authenticated full access
+DO $$ BEGIN
+  CREATE POLICY "Public can read regions" ON regions FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Authenticated users can manage regions" ON regions
+    FOR ALL USING (auth.role() = 'authenticated');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;

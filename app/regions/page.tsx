@@ -171,7 +171,7 @@ export default function RegionsPage() {
                   {region.trails.length > 3 && (
                     <button
                       onClick={() => setExpandedRegion(expandedRegion === region.name ? null : region.name)}
-                      className="text-xs text-green-500 hover:text-green-600 mt-2 font-semibold transition-colors"
+                      className="text-xs text-green-500 hover:text-green-600 mt-2 font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
                     >
                       {expandedRegion === region.name ? "Show less" : `+${region.trails.length - 3} more`}
                     </button>
@@ -181,7 +181,7 @@ export default function RegionsPage() {
                 {/* Action */}
                 <Link
                   href={`/explore?region=${encodeURIComponent(region.name)}`}
-                  className="block w-full text-center bg-green-500 hover:bg-green-400 text-white py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg"
+                  className="block w-full text-center bg-green-500 hover:bg-green-400 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-md hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
                 >
                   Explore {region.name}
                 </Link>

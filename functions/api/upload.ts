@@ -25,8 +25,37 @@ const ALLOWED_TYPES: Record<string, string[]> = {
   video: [".mp4", ".mov", ".webm"],
 };
 
+/**
+ * Validate a Supabase JWT by decoding the payload and checking expiration.
+ * Returns true if the token is present and not expired.
+ */
+function isValidJwt(token: string): boolean {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return false;
+    // Base64url decode the payload
+    const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const decoded = JSON.parse(atob(payload));
+    if (!decoded.exp) return false;
+    // Check expiration (exp is in seconds)
+    return decoded.exp > Math.floor(Date.now() / 1000);
+  } catch {
+    return false;
+  }
+}
+
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   try {
+    // --- Authentication check ---
+    const authHeader = context.request.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const token = authHeader.slice(7);
+    if (!token || !isValidJwt(token)) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const formData = await context.request.formData();
     const file = formData.get("file") as File | null;
     const trailId = formData.get("trailId") as string | null;

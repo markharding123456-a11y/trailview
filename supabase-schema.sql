@@ -77,11 +77,40 @@ CREATE TABLE submissions (
   submitted_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Enable Row Level Security
+-- ===========================================
+-- Row Level Security (RLS)
+-- ===========================================
+-- RLS ensures the anon key only has read access to public data,
+-- while authenticated users can write. See supabase-rls.sql for
+-- the standalone migration if upgrading from permissive policies.
+
 ALTER TABLE trails ENABLE ROW LEVEL SECURITY;
 ALTER TABLE regions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE submissions ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow all access to trails" ON trails FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all access to regions" ON regions FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all access to submissions" ON submissions FOR ALL USING (true) WITH CHECK (true);
+-- TRAILS: public read, authenticated write
+CREATE POLICY "Public can read trails" ON trails
+  FOR SELECT USING (true);
+
+CREATE POLICY "Authenticated users can insert trails" ON trails
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Authenticated users can update trails" ON trails
+  FOR UPDATE USING (auth.role() = 'authenticated');
+
+-- SUBMISSIONS: authenticated create, own-read + authenticated read/update
+CREATE POLICY "Authenticated users can create submissions" ON submissions
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Authenticated users can read own submissions" ON submissions
+  FOR SELECT USING (auth.uid()::text = contributor_id OR auth.role() = 'authenticated');
+
+CREATE POLICY "Authenticated users can update submissions" ON submissions
+  FOR UPDATE USING (auth.role() = 'authenticated');
+
+-- REGIONS: public read, authenticated full access
+CREATE POLICY "Public can read regions" ON regions
+  FOR SELECT USING (true);
+
+CREATE POLICY "Authenticated users can manage regions" ON regions
+  FOR ALL USING (auth.role() = 'authenticated');

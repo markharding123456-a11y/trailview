@@ -63,13 +63,13 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/explore"
-              className="bg-green-500 hover:bg-green-400 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-lg pulse-glow"
+              className="bg-green-500 hover:bg-green-400 text-white px-8 py-4 rounded-xl text-lg font-bold transition-colors shadow-lg pulse-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
             >
               Explore Trails
             </Link>
             <Link
               href="/trail"
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all border border-white/20"
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-xl text-lg font-semibold transition-colors border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2"
             >
               Watch GPS Sync Demo
             </Link>
@@ -241,7 +241,7 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
-              <Link href="/trail" className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-400 px-6 py-3 rounded-xl font-semibold transition-all">
+              <Link href="/trail" className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-400 text-white px-6 py-3 rounded-xl font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2">
                 Try the Live Demo
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
               </Link>
@@ -387,7 +387,7 @@ export default function LandingPage() {
               </div>
               <Link
                 href="/signup/contributor"
-                className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-400 text-white px-7 py-3.5 rounded-xl font-bold text-base transition-all shadow-lg mt-2"
+                className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-400 text-white px-7 py-3.5 rounded-xl font-bold text-base transition-colors shadow-lg mt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
               >
                 Sign Up as a Contributor
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
@@ -437,7 +437,7 @@ export default function LandingPage() {
                 <h2 className="text-2xl sm:text-3xl font-bold text-brand-dark">Most Watched This Week</h2>
               </div>
             </div>
-            <Link href="/explore" className="hidden sm:flex items-center gap-1.5 text-sm text-gray-400 hover:text-brand-dark transition-colors font-medium">
+            <Link href="/explore" className="hidden sm:flex items-center gap-1.5 text-sm text-gray-400 hover:text-brand-dark transition-colors font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400">
               View all
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
@@ -553,7 +553,7 @@ export default function LandingPage() {
             ))}
           </div>
           <div className="text-center mt-10">
-            <Link href="/explore" className="bg-brand-dark hover:bg-brand-mid text-white px-8 py-3 rounded-xl font-semibold transition-all inline-flex items-center gap-2">
+            <Link href="/explore" className="bg-brand-dark hover:bg-brand-dark/90 text-white px-8 py-3 rounded-xl font-semibold transition-colors inline-flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-dark focus-visible:ring-offset-2">
               View All Trails
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
@@ -577,13 +577,13 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/signup/contributor"
-              className="bg-green-500 hover:bg-green-400 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-lg shadow-green-500/20 pulse-glow"
+              className="bg-green-500 hover:bg-green-400 text-white px-8 py-4 rounded-xl text-lg font-bold transition-colors shadow-lg shadow-green-500/20 pulse-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
             >
               Sign Up as Contributor
             </Link>
             <Link
               href="/explore"
-              className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all border border-white/20"
+              className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-colors border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2"
             >
               Explore Trails
             </Link>
@@ -597,10 +597,10 @@ export default function LandingPage() {
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to See the Trail?</h2>
           <p className="text-white/60 text-lg mb-8">Stop guessing. Preview any trail, any activity, before you go.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/signup" className="bg-green-500 hover:bg-green-400 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-lg pulse-glow">
+            <Link href="/signup" className="bg-green-500 hover:bg-green-400 text-white px-8 py-4 rounded-xl text-lg font-bold transition-colors shadow-lg pulse-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2">
               Create Free Account
             </Link>
-            <Link href="/explore" className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all border border-white/20">
+            <Link href="/explore" className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-colors border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2">
               Explore Trails First
             </Link>
           </div>

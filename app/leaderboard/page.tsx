@@ -231,13 +231,13 @@ export default function LeaderboardPage() {
           <div className="flex gap-3 justify-center">
             <Link
               href="/signup/contributor"
-              className="bg-green-500 hover:bg-green-400 px-6 py-3 rounded-xl font-semibold transition-colors"
+              className="bg-green-500 hover:bg-green-400 text-white px-6 py-3 rounded-xl font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
             >
               Become a Contributor
             </Link>
             <Link
               href="/explore"
-              className="bg-white/10 hover:bg-white/20 px-6 py-3 rounded-xl font-semibold transition-colors border border-white/20"
+              className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-semibold transition-colors border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2"
             >
               Explore Trails
             </Link>

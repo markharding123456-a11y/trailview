@@ -131,7 +131,7 @@ export default function ActivitiesPage() {
                     {trails.length > 3 && (
                       <button
                         onClick={() => setExpandedActivity(expandedActivity === activity ? null : activity)}
-                        className="text-xs text-green-500 hover:text-green-600 mt-2 font-semibold transition-colors"
+                        className="text-xs text-green-500 hover:text-green-600 mt-2 font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
                       >
                         {expandedActivity === activity ? "Show less" : `+${trails.length - 3} more`}
                       </button>
@@ -142,7 +142,7 @@ export default function ActivitiesPage() {
                 {/* Action */}
                 <Link
                   href={`/explore?activity=${encodeURIComponent(activity)}`}
-                  className="block w-full text-center bg-green-500 hover:bg-green-400 text-white py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg"
+                  className="block w-full text-center bg-green-500 hover:bg-green-400 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-md hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
                 >
                   Explore {activity} Trails
                 </Link>

@@ -25,15 +25,22 @@ export type UploadProgress = {
  */
 export async function uploadGpx(
   file: File,
-  trailId: string
+  trailId: string,
+  token?: string
 ): Promise<UploadResult> {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("trailId", trailId);
   formData.append("type", "gpx");
 
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${API_BASE}/upload`, {
     method: "POST",
+    headers,
     body: formData,
   });
 
@@ -52,7 +59,8 @@ export async function uploadGpx(
 export function uploadVideo(
   file: File,
   trailId: string,
-  onProgress?: (progress: UploadProgress) => void
+  onProgress?: (progress: UploadProgress) => void,
+  token?: string
 ): Promise<UploadResult> {
   return new Promise((resolve, reject) => {
     const formData = new FormData();
@@ -62,6 +70,9 @@ export function uploadVideo(
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${API_BASE}/upload`);
+    if (token) {
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    }
 
     xhr.upload.addEventListener("progress", (e) => {
       if (e.lengthComputable && onProgress) {
@@ -93,15 +104,22 @@ export function uploadVideo(
  */
 export async function uploadThumbnail(
   file: File,
-  trailId: string
+  trailId: string,
+  token?: string
 ): Promise<UploadResult> {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("trailId", trailId);
   formData.append("type", "thumbnail");
 
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${API_BASE}/upload`, {
     method: "POST",
+    headers,
     body: formData,
   });
 

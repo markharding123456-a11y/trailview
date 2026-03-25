@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { parseGpx, type GpxResult } from "@/lib/gpx";
 import { saveSubmission } from "@/lib/submissions";
 import { createSubmission } from "@/lib/supabase";
 import { uploadGpx, uploadVideo, formatFileSize, type UploadProgress } from "@/lib/cloudflare";
+import { getSession } from "@/lib/auth";
 
 const ACTIVITIES = [
   "Mountain Biking", "Motorcycle", "ATV/UTV", "Skiing/Snowboarding",
@@ -26,6 +27,22 @@ const DIFFICULTIES = [
 ];
 
 export default function UploadPage() {
+  const [authenticated, setAuthenticated] = useState<boolean | null>(null);
+  const [accessToken, setAccessToken] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    getSession().then((session) => {
+      if (session?.access_token) {
+        setAuthenticated(true);
+        setAccessToken(session.access_token);
+      } else {
+        setAuthenticated(false);
+      }
+    }).catch(() => {
+      setAuthenticated(false);
+    });
+  }, []);
+
   const [form, setForm] = useState({
     trailName: "",
     activity: [] as string[],
@@ -146,7 +163,7 @@ export default function UploadPage() {
       let gpxUrl = "";
       if (gpxFile) {
         try {
-          const result = await uploadGpx(gpxFile, trailId);
+          const result = await uploadGpx(gpxFile, trailId, accessToken);
           gpxUrl = result.url;
         } catch {
           console.warn("R2 upload unavailable, saving GPX data locally");
@@ -157,7 +174,7 @@ export default function UploadPage() {
       let videoUrl = "";
       if (videoFile) {
         try {
-          const result = await uploadVideo(videoFile, trailId, setUploadProgress);
+          const result = await uploadVideo(videoFile, trailId, setUploadProgress, accessToken);
           videoUrl = result.url;
         } catch {
           setErrors({ video: "Video upload failed. Please try again." });
@@ -224,6 +241,36 @@ export default function UploadPage() {
     setUploadProgress(null);
     setErrors({});
     setSubmitted(false);
+  }
+
+  if (authenticated === null) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-16">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    );
+  }
+
+  if (authenticated === false) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-16">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-10 max-w-md w-full text-center">
+          <h2 className="text-2xl font-bold text-brand-dark mb-3">Sign In Required</h2>
+          <p className="text-gray-500 mb-6">Please sign in to upload trails.</p>
+          <div className="flex flex-col gap-3">
+            <Link
+              href="/admin"
+              className="w-full py-3 bg-green-500 hover:bg-green-400 text-white font-semibold rounded-xl transition-colors text-center"
+            >
+              Sign In
+            </Link>
+            <Link href="/" className="text-sm text-brand-mid hover:text-brand-dark font-medium transition-colors">
+              Back to TrailView
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (submitted) {
