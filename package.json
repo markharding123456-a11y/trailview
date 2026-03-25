@@ -41,6 +41,7 @@
     "@types/mapbox-gl": "^3.4.1",
     "@vitejs/plugin-react": "^6.0.1",
     "jsdom": "^29.0.1",
+    "sharp": "^0.34.5",
     "vitest": "^4.1.1",
     "wrangler": "^3.99.0"
   }

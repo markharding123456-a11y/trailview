@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { parseGpx, type GpxResult } from "@/lib/gpx";
 import { saveSubmission } from "@/lib/submissions";
 import { createSubmission } from "@/lib/supabase";
 import { uploadGpx, uploadVideo, formatFileSize, type UploadProgress } from "@/lib/cloudflare";
 import { getSession } from "@/lib/auth";
-import { ToastProvider, useToast } from "@/app/components/toast";
+import FormField from "@/app/components/form-field";
 
 const ACTIVITIES = [
   "Mountain Biking", "Motorcycle", "ATV/UTV", "Skiing/Snowboarding",
@@ -27,18 +27,14 @@ const DIFFICULTIES = [
   { value: "expert", label: "Expert", color: "bg-trail-red" },
 ];
 
-export default function UploadPage() {
-  return (
-    <ToastProvider>
-      <UploadPageInner />
-    </ToastProvider>
-  );
-}
+const TRAIL_NAME_MIN = 3;
+const TRAIL_NAME_MAX = 200;
+const DESCRIPTION_MAX = 1000;
 
-function UploadPageInner() {
-  const { showToast } = useToast();
+export default function UploadPage() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [accessToken, setAccessToken] = useState<string | undefined>(undefined);
+  const uploadAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     getSession().then((session) => {
@@ -66,6 +62,7 @@ function UploadPageInner() {
   const [gpxFileName, setGpxFileName] = useState("");
   const [gpxFile, setGpxFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitted, setSubmitted] = useState(false);
   const [dragging, setDragging] = useState(false);
 
@@ -82,6 +79,50 @@ function UploadPageInner() {
         ? f.activity.filter((a) => a !== activity)
         : [...f.activity, activity],
     }));
+    // Clear error when user selects an activity
+    setErrors((e) => {
+      const next = { ...e };
+      delete next.activity;
+      return next;
+    });
+  }
+
+  function handleTrailNameBlur() {
+    setTouched((t) => ({ ...t, trailName: true }));
+    const val = form.trailName.trim();
+    if (!val) {
+      setErrors((e) => ({ ...e, trailName: "Trail name is required." }));
+    } else if (val.length < TRAIL_NAME_MIN) {
+      setErrors((e) => ({ ...e, trailName: `Trail name must be at least ${TRAIL_NAME_MIN} characters.` }));
+    } else if (val.length > TRAIL_NAME_MAX) {
+      setErrors((e) => ({ ...e, trailName: `Trail name must be under ${TRAIL_NAME_MAX} characters.` }));
+    } else {
+      setErrors((e) => {
+        const next = { ...e };
+        delete next.trailName;
+        return next;
+      });
+    }
+  }
+
+  function handleTrailNameChange(value: string) {
+    setForm((f) => ({ ...f, trailName: value }));
+    if (touched.trailName) {
+      const val = value.trim();
+      if (!val) {
+        setErrors((e) => ({ ...e, trailName: "Trail name is required." }));
+      } else if (val.length < TRAIL_NAME_MIN) {
+        setErrors((e) => ({ ...e, trailName: `Trail name must be at least ${TRAIL_NAME_MIN} characters.` }));
+      } else if (val.length > TRAIL_NAME_MAX) {
+        setErrors((e) => ({ ...e, trailName: `Trail name must be under ${TRAIL_NAME_MAX} characters.` }));
+      } else {
+        setErrors((e) => {
+          const next = { ...e };
+          delete next.trailName;
+          return next;
+        });
+      }
+    }
   }
 
   const processGpxFile = useCallback((file: File) => {
@@ -148,7 +189,10 @@ function UploadPageInner() {
 
   function validate() {
     const e: Record<string, string> = {};
-    if (!form.trailName.trim()) e.trailName = "Trail name is required.";
+    const trailName = form.trailName.trim();
+    if (!trailName) e.trailName = "Trail name is required.";
+    else if (trailName.length < TRAIL_NAME_MIN) e.trailName = `Trail name must be at least ${TRAIL_NAME_MIN} characters.`;
+    else if (trailName.length > TRAIL_NAME_MAX) e.trailName = `Trail name must be under ${TRAIL_NAME_MAX} characters.`;
     if (form.activity.length === 0) e.activity = "Select at least one activity.";
     if (!form.region) e.region = "Region is required.";
     if (!videoFile) e.video = "Please select a video file.";
@@ -159,14 +203,25 @@ function UploadPageInner() {
     return e;
   }
 
+  function handleCancelUpload() {
+    if (uploadAbortRef.current) {
+      uploadAbortRef.current.abort();
+      uploadAbortRef.current = null;
+    }
+    setIsUploading(false);
+    setUploadProgress(null);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const errs = validate();
     setErrors(errs);
+    setTouched({ trailName: true });
     if (Object.keys(errs).length > 0) return;
 
     const trailId = crypto.randomUUID();
     setIsUploading(true);
+    uploadAbortRef.current = new AbortController();
 
     try {
       // Upload GPX to R2
@@ -188,8 +243,8 @@ function UploadPageInner() {
           videoUrl = result.url;
         } catch {
           setErrors({ video: "Video upload failed. Please try again." });
-          showToast("Video upload failed. Please try again.", "error");
           setIsUploading(false);
+          setUploadProgress(null);
           return;
         }
       }
@@ -235,13 +290,12 @@ function UploadPageInner() {
       }
 
       setSubmitted(true);
-      showToast("Trail submitted successfully!", "success");
     } catch {
       setErrors({ submit: "Something went wrong. Please try again." });
-      showToast("Something went wrong. Please try again.", "error");
     } finally {
       setIsUploading(false);
       setUploadProgress(null);
+      uploadAbortRef.current = null;
     }
   }
 
@@ -253,6 +307,7 @@ function UploadPageInner() {
     setVideoFile(null);
     setUploadProgress(null);
     setErrors({});
+    setTouched({});
     setSubmitted(false);
   }
 
@@ -336,7 +391,7 @@ function UploadPageInner() {
 
             {/* GPX Upload */}
             <div>
-              <label htmlFor="gpx-file-input" className="block text-sm font-semibold text-gray-700 mb-2">GPX File</label>
+              <label htmlFor="gpx-file-input" className="block text-sm font-medium text-brand-dark mb-2">GPX File <span className="text-red-500">*</span></label>
               <div
                 onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
                 onDragLeave={() => setDragging(false)}
@@ -361,12 +416,12 @@ function UploadPageInner() {
                   <span className="font-medium">{gpxFileName}</span> — {gpxResult.distance_km} km, {gpxResult.elevation_gain_m}m gain, {gpxResult.coordinates.length} trackpoints
                 </div>
               )}
-              {errors.gpx && <p className="text-red-500 text-xs mt-1">{errors.gpx}</p>}
+              {errors.gpx && <p className="text-xs text-red-500 mt-1">{errors.gpx}</p>}
             </div>
 
             {/* Video Upload */}
             <div>
-              <label htmlFor="video-file-input" className="block text-sm font-semibold text-gray-700 mb-2">Trail Video</label>
+              <label htmlFor="video-file-input" className="block text-sm font-medium text-brand-dark mb-2">Trail Video <span className="text-red-500">*</span></label>
               <div
                 onDragOver={(e) => { e.preventDefault(); setVideoDragging(true); }}
                 onDragLeave={() => setVideoDragging(false)}
@@ -407,31 +462,48 @@ function UploadPageInner() {
                       style={{ width: `${uploadProgress.percent}%` }}
                     />
                   </div>
-                  <div className="text-xs text-blue-400 mt-1">
-                    {formatFileSize(uploadProgress.loaded)} / {formatFileSize(uploadProgress.total)}
+                  <div className="flex items-center justify-between mt-1">
+                    <div className="text-xs text-blue-400">
+                      {formatFileSize(uploadProgress.loaded)} / {formatFileSize(uploadProgress.total)}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCancelUpload}
+                      className="text-xs text-red-500 hover:text-red-700 font-medium transition-colors"
+                    >
+                      Cancel Upload
+                    </button>
                   </div>
                 </div>
               )}
-              {errors.video && <p className="text-red-500 text-xs mt-1">{errors.video}</p>}
+              {errors.video && <p className="text-xs text-red-500 mt-1">{errors.video}</p>}
             </div>
 
             {/* Trail Name */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Trail Name</label>
+            <FormField
+              label="Trail Name"
+              error={touched.trailName ? errors.trailName : undefined}
+              required
+            >
               <input
                 type="text"
                 value={form.trailName}
-                onChange={(e) => setForm({ ...form, trailName: e.target.value })}
+                onChange={(e) => handleTrailNameChange(e.target.value)}
+                onBlur={handleTrailNameBlur}
                 placeholder="e.g., Top of the World"
-                className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${errors.trailName ? "border-red-400 bg-red-50" : "border-gray-300"}`}
+                maxLength={TRAIL_NAME_MAX}
+                className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${touched.trailName && errors.trailName ? "border-red-400 bg-red-50" : "border-gray-300"}`}
               />
-              {errors.trailName && <p className="text-red-500 text-xs mt-1">{errors.trailName}</p>}
-            </div>
+              <div className="flex justify-between mt-1">
+                <p className="text-xs text-gray-400">Min {TRAIL_NAME_MIN}, max {TRAIL_NAME_MAX} characters</p>
+                <p className="text-xs text-gray-400">{form.trailName.length}/{TRAIL_NAME_MAX}</p>
+              </div>
+            </FormField>
 
             {/* Activity Type */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Activity</label>
-              <div className="flex flex-wrap gap-2">
+              <label className="block text-sm font-medium text-brand-dark mb-2">Activity <span className="text-red-500">*</span></label>
+              <div className={`flex flex-wrap gap-2 p-3 rounded-lg border-2 transition-colors ${errors.activity ? "border-red-300 bg-red-50" : "border-transparent"}`}>
                 {ACTIVITIES.map((activity) => (
                   <button
                     key={activity}
@@ -447,15 +519,19 @@ function UploadPageInner() {
                   </button>
                 ))}
               </div>
-              {errors.activity && <p className="text-red-500 text-xs mt-1">{errors.activity}</p>}
+              {errors.activity && <p className="text-xs text-red-500 mt-1">{errors.activity}</p>}
             </div>
 
             {/* Region */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Region</label>
+            <FormField label="Region" error={errors.region} required>
               <select
                 value={form.region}
-                onChange={(e) => setForm({ ...form, region: e.target.value })}
+                onChange={(e) => {
+                  setForm({ ...form, region: e.target.value });
+                  if (e.target.value) {
+                    setErrors((prev) => { const next = { ...prev }; delete next.region; return next; });
+                  }
+                }}
                 className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors text-gray-700 ${errors.region ? "border-red-400 bg-red-50" : "border-gray-300"}`}
               >
                 <option value="">Select a region...</option>
@@ -463,8 +539,7 @@ function UploadPageInner() {
                   <option key={r} value={r}>{r}</option>
                 ))}
               </select>
-              {errors.region && <p className="text-red-500 text-xs mt-1">{errors.region}</p>}
-            </div>
+            </FormField>
 
             {/* Difficulty */}
             <div>
@@ -488,17 +563,23 @@ function UploadPageInner() {
             </div>
 
             {/* Description */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Description</label>
+            <FormField label="Description" error={errors.description} required>
               <textarea
                 value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                onChange={(e) => {
+                  if (e.target.value.length <= DESCRIPTION_MAX) {
+                    setForm({ ...form, description: e.target.value });
+                    if (e.target.value.trim()) {
+                      setErrors((prev) => { const next = { ...prev }; delete next.description; return next; });
+                    }
+                  }
+                }}
                 placeholder="Trail conditions, highlights, what to expect..."
                 rows={3}
                 className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors ${errors.description ? "border-red-400 bg-red-50" : "border-gray-300"}`}
               />
-              {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
-            </div>
+              <p className="text-xs text-gray-400 mt-1 text-right">{form.description.length}/{DESCRIPTION_MAX}</p>
+            </FormField>
 
             {/* Agreements */}
             <div className="space-y-3 pt-2">
@@ -507,7 +588,12 @@ function UploadPageInner() {
                   <input
                     type="checkbox"
                     checked={form.contributorAgreement}
-                    onChange={(e) => setForm({ ...form, contributorAgreement: e.target.checked })}
+                    onChange={(e) => {
+                      setForm({ ...form, contributorAgreement: e.target.checked });
+                      if (e.target.checked) {
+                        setErrors((prev) => { const next = { ...prev }; delete next.contributorAgreement; return next; });
+                      }
+                    }}
                     className="sr-only"
                   />
                   <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
@@ -522,14 +608,19 @@ function UploadPageInner() {
                   I agree to the <Link href="/legal#contributor" className="text-brand-mid font-medium underline">Contributor Agreement</Link>, including content ownership, revenue share terms, and upload guidelines
                 </span>
               </label>
-              {errors.contributorAgreement && <p className="text-red-500 text-xs ml-8">{errors.contributorAgreement}</p>}
+              {errors.contributorAgreement && <p className="text-xs text-red-500 ml-8">{errors.contributorAgreement}</p>}
 
               <label className="flex items-start gap-3 cursor-pointer group">
                 <div className="relative mt-0.5 flex-shrink-0">
                   <input
                     type="checkbox"
                     checked={form.liabilityWaiver}
-                    onChange={(e) => setForm({ ...form, liabilityWaiver: e.target.checked })}
+                    onChange={(e) => {
+                      setForm({ ...form, liabilityWaiver: e.target.checked });
+                      if (e.target.checked) {
+                        setErrors((prev) => { const next = { ...prev }; delete next.liabilityWaiver; return next; });
+                      }
+                    }}
                     className="sr-only"
                   />
                   <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
@@ -544,7 +635,7 @@ function UploadPageInner() {
                   I acknowledge the <Link href="/legal#waiver" className="text-brand-mid font-medium underline">Liability Waiver &amp; Assumption of Risk</Link> and confirm I have the legal right to film and share this trail content
                 </span>
               </label>
-              {errors.liabilityWaiver && <p className="text-red-500 text-xs ml-8">{errors.liabilityWaiver}</p>}
+              {errors.liabilityWaiver && <p className="text-xs text-red-500 ml-8">{errors.liabilityWaiver}</p>}
             </div>
 
             {/* Submit */}
@@ -554,8 +645,14 @@ function UploadPageInner() {
             <button
               type="submit"
               disabled={isUploading}
-              className="w-full py-3.5 bg-green-500 hover:bg-green-400 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-base rounded-xl transition-colors shadow-lg hover:shadow-green-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
+              className="w-full py-3.5 bg-green-500 hover:bg-green-400 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-base rounded-xl transition-colors shadow-lg hover:shadow-green-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2 flex items-center justify-center gap-2"
             >
+              {isUploading && (
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              )}
               {isUploading ? "Uploading..." : "Submit Trail"}
             </button>
           </form>

@@ -38,6 +38,8 @@ export default function AdminPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
+  const [loginErrors, setLoginErrors] = useState<Record<string, string>>({});
+  const [loginLoading, setLoginLoading] = useState(false);
 
   const [tab, setTab] = useState<Tab>("submissions");
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -78,7 +80,14 @@ export default function AdminPage() {
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
+    const errs: Record<string, string> = {};
+    if (!email.trim()) errs.email = "Email is required.";
+    if (!password) errs.password = "Password is required.";
+    setLoginErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+
     setAuthError("");
+    setLoginLoading(true);
     try {
       await signIn(email, password);
       setAuthenticated(true);
@@ -86,6 +95,8 @@ export default function AdminPage() {
       setIsAdminUser(adminCheck);
     } catch (err: unknown) {
       setAuthError(err instanceof Error ? err.message : "Login failed. Check your credentials.");
+    } finally {
+      setLoginLoading(false);
     }
   }
 
@@ -204,29 +215,53 @@ export default function AdminPage() {
             <p className="text-sm text-gray-500 mt-1">Sign in with your admin account</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              autoComplete="email"
-              className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid ${
-                authError ? "border-red-400 bg-red-50" : "border-gray-300"
-              }`}
-            />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              autoComplete="current-password"
-              className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid ${
-                authError ? "border-red-400 bg-red-50" : "border-gray-300"
-              }`}
-            />
+            <div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setAuthError("");
+                  setLoginErrors((prev) => { const next = { ...prev }; delete next.email; return next; });
+                }}
+                placeholder="Email"
+                autoComplete="email"
+                className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid ${
+                  loginErrors.email || authError ? "border-red-400 bg-red-50" : "border-gray-300"
+                }`}
+              />
+              {loginErrors.email && <p className="text-red-500 text-xs mt-1">{loginErrors.email}</p>}
+            </div>
+            <div>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setAuthError("");
+                  setLoginErrors((prev) => { const next = { ...prev }; delete next.password; return next; });
+                }}
+                placeholder="Password"
+                autoComplete="current-password"
+                className={`w-full px-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid ${
+                  loginErrors.password || authError ? "border-red-400 bg-red-50" : "border-gray-300"
+                }`}
+              />
+              {loginErrors.password && <p className="text-red-500 text-xs mt-1">{loginErrors.password}</p>}
+            </div>
             {authError && <p className="text-red-500 text-xs">{authError}</p>}
-            <button type="submit" className="w-full py-3 bg-brand-dark hover:bg-brand-dark/90 text-white font-semibold rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-dark focus-visible:ring-offset-2">
-              Sign In
+            <button
+              type="submit"
+              disabled={loginLoading}
+              className="w-full py-3 bg-brand-dark hover:bg-brand-dark/90 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-dark focus-visible:ring-offset-2 flex items-center justify-center gap-2"
+            >
+              {loginLoading && (
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              )}
+              {loginLoading ? "Signing In..." : "Sign In"}
             </button>
           </form>
         </div>
