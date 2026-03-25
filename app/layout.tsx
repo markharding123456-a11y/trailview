@@ -111,10 +111,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
             </div>
             <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3">
-              <p className="text-xs">2026 TrailView. Built in British Columbia.</p>
+              <p className="text-xs">&copy; 2026 TrailView. All rights reserved. Built in British Columbia.</p>
               <div className="flex items-center gap-4 text-xs">
                 <Link href="/legal#terms" className="hover:text-white transition-colors">Terms</Link>
                 <Link href="/legal#privacy" className="hover:text-white transition-colors">Privacy</Link>
+                <Link href="/legal#copyright" className="hover:text-white transition-colors">Copyright</Link>
                 <Link href="/legal#disclaimer" className="hover:text-white transition-colors">Disclaimer</Link>
               </div>
             </div>

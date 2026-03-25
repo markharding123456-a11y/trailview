@@ -30,6 +30,7 @@ export default function LegalPage() {
               { id: "eula", label: "EULA" },
               { id: "contributor", label: "Contributor Agreement" },
               { id: "waiver", label: "Liability Waiver" },
+              { id: "copyright", label: "Copyright & DMCA" },
               { id: "disclaimer", label: "Disclaimer" },
             ].map((s) => (
               <a
@@ -261,6 +262,69 @@ export default function LegalPage() {
             <H3>6. Medical Fitness</H3>
             <P>
               You represent that you are physically fit and have no medical condition that would prevent safe participation in outdoor activities. You are solely responsible for assessing your own fitness and ability level before attempting any trail depicted on the Platform.
+            </P>
+          </Section>
+
+          {/* ──────────────────── COPYRIGHT & DMCA ──────────────────── */}
+          <Section id="copyright" title="Copyright & DMCA Policy">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-4">
+              <p className="text-blue-800 text-sm leading-relaxed">
+                TrailView respects the intellectual property rights of others and expects users to do the same. All content on the Platform is protected by copyright law.
+              </p>
+            </div>
+
+            <H3>1. Platform Copyright</H3>
+            <P>
+              Copyright 2026 TrailView. All rights reserved. The TrailView name, logo, website design, source code, user interface, and all original content created by TrailView are the exclusive property of TrailView and are protected by Canadian and international copyright laws, trade-mark laws, and other intellectual property laws. No part of the Platform may be reproduced, distributed, modified, or transmitted in any form without prior written consent from TrailView.
+            </P>
+
+            <H3>2. Contributor Content Copyright</H3>
+            <P>
+              Trail videos, GPS/GPX data, photographs, descriptions, and other content uploaded by contributors remain the copyright of their respective creators. Contributors grant TrailView a license to use this content as described in the Contributor Agreement. Unauthorized reproduction, download, recording, redistribution, or commercial use of contributor content is strictly prohibited.
+            </P>
+
+            <H3>3. Prohibited Uses</H3>
+            <P>The following are expressly prohibited without written authorization:</P>
+            <UL>
+              <li>Downloading, screen-recording, or capturing trail videos from the Platform</li>
+              <li>Extracting, copying, or scraping GPS/GPX data for use outside the Platform</li>
+              <li>Reproducing trail descriptions, ratings, or metadata for competing services</li>
+              <li>Using TrailView content to train machine learning models or AI systems</li>
+              <li>Embedding or framing TrailView content on external websites</li>
+              <li>Creating derivative works from any Platform content without permission</li>
+              <li>Using automated tools (bots, scrapers, crawlers) to access or collect content</li>
+              <li>Removing or altering copyright notices, watermarks, or attribution</li>
+            </UL>
+
+            <H3>4. DMCA Takedown Notices</H3>
+            <P>
+              If you believe that content on TrailView infringes your copyright, you may submit a Digital Millennium Copyright Act (DMCA) takedown notice to our designated agent. Your notice must include:
+            </P>
+            <UL>
+              <li>Identification of the copyrighted work you claim has been infringed</li>
+              <li>Identification of the material on TrailView that you claim is infringing, with sufficient detail to locate it</li>
+              <li>Your contact information (name, address, phone number, email)</li>
+              <li>A statement that you have a good faith belief that the use is not authorized by the copyright owner, its agent, or the law</li>
+              <li>A statement, under penalty of perjury, that the information in the notice is accurate and that you are the copyright owner or authorized to act on behalf of the owner</li>
+              <li>Your physical or electronic signature</li>
+            </UL>
+            <P>
+              Send DMCA notices to: <span className="font-medium text-brand-dark">dmca@trailview.ca</span>
+            </P>
+
+            <H3>5. Counter-Notification</H3>
+            <P>
+              If you believe your content was removed in error, you may submit a counter-notification including: identification of the removed material and its prior location, a statement under penalty of perjury that the material was removed by mistake or misidentification, your name, address, and phone number, and consent to jurisdiction in the Federal Court of Canada. Counter-notifications should be sent to <span className="font-medium text-brand-dark">dmca@trailview.ca</span>.
+            </P>
+
+            <H3>6. Repeat Infringers</H3>
+            <P>
+              TrailView will terminate the accounts of users who are determined to be repeat copyright infringers. We maintain a policy of acting expeditiously to remove or disable access to infringing material upon receiving valid takedown notices.
+            </P>
+
+            <H3>7. Content Licensing &amp; Attribution</H3>
+            <P>
+              No content on TrailView is licensed under Creative Commons or any open license unless explicitly stated. All rights are reserved by the respective copyright holders. Any use of TrailView content for press, educational, or promotional purposes requires prior written approval. Contact <span className="font-medium text-brand-dark">legal@trailview.ca</span> for licensing inquiries.
             </P>
           </Section>
 
