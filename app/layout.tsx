@@ -22,8 +22,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </main>
 
         {/* Footer */}
-        <footer className="bg-brand-dark text-white/70">
+        <footer aria-label="Site footer" className="bg-brand-dark text-white/70">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+            <nav aria-label="Footer navigation">
             <div className="grid md:grid-cols-4 gap-8 mb-8">
               <div>
                 <div className="flex items-center gap-2 mb-3">
@@ -69,6 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </ul>
               </div>
             </div>
+            </nav>
             <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3">
               <p className="text-xs">2026 TrailView. Built in British Columbia.</p>
               <p className="text-xs text-white/40">The Google Street View of off-road recreation.</p>

@@ -123,7 +123,7 @@ export default function AdminPage() {
   if (!authenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 max-w-sm w-full">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 max-w-sm w-full">
           <div className="text-center mb-6">
             <div className="w-12 h-12 bg-brand-dark rounded-xl flex items-center justify-center mx-auto mb-3">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
@@ -132,7 +132,7 @@ export default function AdminPage() {
               </svg>
             </div>
             <h1 className="text-xl font-bold text-brand-dark">Admin Dashboard</h1>
-            <p className="text-sm text-gray-400 mt-1">Enter password to continue</p>
+            <p className="text-sm text-gray-500 mt-1">Enter password to continue</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
             <input
@@ -145,7 +145,7 @@ export default function AdminPage() {
               }`}
             />
             {authError && <p className="text-red-500 text-xs">Incorrect password.</p>}
-            <button type="submit" className="w-full py-3 bg-brand-dark text-white font-semibold rounded-lg hover:bg-brand-mid transition-colors">
+            <button type="submit" className="w-full py-3 bg-brand-dark hover:bg-brand-dark/90 text-white font-semibold rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-dark focus-visible:ring-offset-2">
               Sign In
             </button>
           </form>
@@ -177,12 +177,14 @@ export default function AdminPage() {
 
       {/* Tabs */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto flex">
+        <div className="max-w-7xl mx-auto flex" role="tablist">
           {(["submissions", "trails", "assets"] as Tab[]).map((t) => (
             <button
               key={t}
+              role="tab"
+              aria-selected={tab === t}
               onClick={() => setTab(t)}
-              className={`px-6 py-3 text-sm font-semibold capitalize transition-colors border-b-2 ${
+              className={`px-6 py-3 text-sm font-semibold capitalize transition-colors border-b-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 ${
                 tab === t
                   ? "border-green-500 text-brand-dark"
                   : "border-transparent text-gray-400 hover:text-gray-600"
@@ -214,7 +216,7 @@ export default function AdminPage() {
                       <button
                         key={s}
                         onClick={() => setStatusFilter(s)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 ${
                           statusFilter === s
                             ? "bg-brand-dark text-white"
                             : "bg-gray-100 text-gray-500 hover:bg-gray-200"
@@ -242,7 +244,7 @@ export default function AdminPage() {
                             </div>
                             <div>
                               <h3 className="font-semibold text-brand-dark">{sub.trail_name}</h3>
-                              <p className="text-sm text-gray-400 mt-0.5">{sub.region} — {sub.activity_types.join(", ")}</p>
+                              <p className="text-sm text-gray-500 mt-0.5">{sub.region} — {sub.activity_types.join(", ")}</p>
                               {sub.description && <p className="text-sm text-gray-500 mt-1">{sub.description}</p>}
                               <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
                                 {sub.distance_km && <span>{sub.distance_km} km</span>}
@@ -279,7 +281,7 @@ export default function AdminPage() {
                             {sub.status === "pending" && (
                               <button
                                 onClick={() => setReviewing(sub)}
-                                className="px-4 py-2 bg-green-500 text-white text-xs font-semibold rounded-lg hover:bg-green-400 transition-colors"
+                                className="px-4 py-2 bg-green-500 text-white text-xs font-semibold rounded-xl hover:bg-green-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
                               >
                                 Review
                               </button>
@@ -298,13 +300,13 @@ export default function AdminPage() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-bold text-brand-dark">All Trails ({trails.length})</h2>
-                  <Link href="/trails/new" className="px-4 py-2 bg-green-500 text-white text-sm font-semibold rounded-lg hover:bg-green-400 transition-colors">
+                  <Link href="/trails/new" className="px-4 py-2 bg-green-500 text-white text-sm font-semibold rounded-xl hover:bg-green-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2">
                     + Add Trail
                   </Link>
                 </div>
                 <div className="space-y-2">
                   {trails.map((trail) => (
-                    <div key={trail.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+                    <div key={trail.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
                       <div className={`${DIFF_COLORS[trail.difficulty]} w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
                         {trail.difficulty === "expert" ? "EX" : trail.difficulty[0].toUpperCase()}
                       </div>
@@ -338,15 +340,15 @@ export default function AdminPage() {
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
                     <div className="text-3xl font-bold text-brand-dark">{trails.filter(t => t.video_url).length}</div>
-                    <div className="text-sm text-gray-400 mt-1">Videos stored in R2</div>
+                    <div className="text-sm text-gray-500 mt-1">Videos stored in R2</div>
                   </div>
                   <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
                     <div className="text-3xl font-bold text-brand-dark">{trails.filter(t => t.gpx_url).length}</div>
-                    <div className="text-sm text-gray-400 mt-1">GPX files stored in R2</div>
+                    <div className="text-sm text-gray-500 mt-1">GPX files stored in R2</div>
                   </div>
                   <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
                     <div className="text-3xl font-bold text-brand-dark">{submissions.filter(s => s.status === "pending" && s.video_key).length}</div>
-                    <div className="text-sm text-gray-400 mt-1">Pending video reviews</div>
+                    <div className="text-sm text-gray-500 mt-1">Pending video reviews</div>
                   </div>
                 </div>
                 <div className="mt-6 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
@@ -368,11 +370,11 @@ export default function AdminPage() {
       {/* ── REVIEW MODAL ── */}
       {reviewing && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div role="dialog" aria-modal="true" aria-label="Review submission" className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-100">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold text-brand-dark">Review Submission</h2>
-                <button onClick={() => setReviewing(null)} className="text-gray-400 hover:text-gray-600">
+                <button onClick={() => setReviewing(null)} aria-label="Close review" className="text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
                 </button>
               </div>

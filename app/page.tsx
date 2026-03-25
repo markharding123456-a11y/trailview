@@ -98,7 +98,7 @@ export default function LandingPage() {
                 key={trail.id}
                 className="group flex-shrink-0 w-72 md:w-auto snap-start"
               >
-                <div className={`relative rounded-2xl overflow-hidden card-hover bg-gradient-to-br ${difficultyGradients[trail.difficulty]} h-full`}>
+                <div className={`relative rounded-xl overflow-hidden card-hover bg-gradient-to-br ${difficultyGradients[trail.difficulty]} h-full`}>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                   <div className="relative z-10 p-6 flex flex-col justify-end min-h-[260px]">
                     {/* Difficulty badge */}
@@ -147,19 +147,19 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
               <div className="text-4xl sm:text-5xl font-extrabold text-green-400 mb-2">{totalTrails * 50}+</div>
-              <div className="text-sm text-white/50 font-medium uppercase tracking-wider">Trails</div>
+              <div className="text-sm text-white/60 font-medium uppercase tracking-wider">Trails</div>
             </div>
             <div>
               <div className="text-4xl sm:text-5xl font-extrabold text-green-400 mb-2">{(totalDistanceKm * 50).toLocaleString()}+</div>
-              <div className="text-sm text-white/50 font-medium uppercase tracking-wider">km of trails</div>
+              <div className="text-sm text-white/60 font-medium uppercase tracking-wider">km of trails</div>
             </div>
             <div>
               <div className="text-4xl sm:text-5xl font-extrabold text-green-400 mb-2">{totalContributors}+</div>
-              <div className="text-sm text-white/50 font-medium uppercase tracking-wider">Contributors</div>
+              <div className="text-sm text-white/60 font-medium uppercase tracking-wider">Contributors</div>
             </div>
             <div>
               <div className="text-4xl sm:text-5xl font-extrabold text-green-400 mb-2">{totalRegions}</div>
-              <div className="text-sm text-white/50 font-medium uppercase tracking-wider">Regions</div>
+              <div className="text-sm text-white/60 font-medium uppercase tracking-wider">Regions</div>
             </div>
           </div>
         </div>
@@ -205,7 +205,7 @@ export default function LandingPage() {
                 ),
               },
             ].map((item) => (
-              <div key={item.step} className="bg-gray-50 rounded-2xl p-8 text-center card-hover">
+              <div key={item.step} className="bg-gray-50 rounded-xl p-8 text-center card-hover">
                 <div className="w-16 h-16 bg-brand-dark text-white rounded-2xl flex items-center justify-center mx-auto mb-5">
                   {item.icon}
                 </div>
@@ -237,7 +237,7 @@ export default function LandingPage() {
                 ].map((f) => (
                   <div key={f.label} className="bg-white/5 rounded-xl p-4 border border-white/10">
                     <div className="text-sm font-semibold text-green-400">{f.label}</div>
-                    <div className="text-xs text-white/50 mt-1">{f.desc}</div>
+                    <div className="text-xs text-white/60 mt-1">{f.desc}</div>
                   </div>
                 ))}
               </div>
@@ -255,15 +255,15 @@ export default function LandingPage() {
                 }} />
                 {/* HUD overlay */}
                 <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1.5 text-sm">
-                  <span className="text-white/50 text-xs">SPEED</span>
+                  <span className="text-white/60 text-xs">SPEED</span>
                   <div className="text-green-400 font-bold text-lg hud-value">24.7 <span className="text-xs text-white/40">km/h</span></div>
                 </div>
                 <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1.5 text-sm">
-                  <span className="text-white/50 text-xs">ELEV</span>
+                  <span className="text-white/60 text-xs">ELEV</span>
                   <div className="text-blue-400 font-bold text-lg hud-value">1,247 <span className="text-xs text-white/40">m</span></div>
                 </div>
                 <div className="absolute bottom-4 left-4 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1.5 text-sm">
-                  <span className="text-white/50 text-xs">DIST</span>
+                  <span className="text-white/60 text-xs">DIST</span>
                   <div className="text-amber-400 font-bold text-lg hud-value">3.2 / 8.4 <span className="text-xs text-white/40">km</span></div>
                 </div>
                 {/* Play button */}
@@ -303,7 +303,7 @@ export default function LandingPage() {
             {activityTypes.map((activity) => {
               const trailCount = sampleTrails.filter(t => t.activityTypes.includes(activity)).length;
               return (
-                <Link href="/explore" key={activity} className="bg-white rounded-2xl p-6 sm:p-8 text-center card-hover shadow-sm border border-gray-100 group">
+                <Link href="/explore" key={activity} className="bg-white rounded-xl p-6 sm:p-8 text-center card-hover shadow-sm border border-gray-100 group">
                   <div className="w-14 h-14 bg-brand-dark text-white rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-green-500 transition-colors">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                       <path d={activityIcons[activity] || activityIcons.Hiking} />
@@ -327,11 +327,11 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 stagger-children">
             {regions.map((region) => (
-              <Link href="/explore" key={region.slug} className="group relative bg-brand-dark rounded-2xl p-6 overflow-hidden card-hover">
+              <Link href="/explore" key={region.slug} className="group relative bg-brand-dark rounded-xl p-6 overflow-hidden card-hover">
                 <div className="absolute inset-0 bg-gradient-to-br from-brand-mid/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="relative z-10">
                   <h3 className="font-bold text-white text-lg mb-1">{region.name}</h3>
-                  <p className="text-white/50 text-sm">{region.trailCount * 38} trails filmed</p>
+                  <p className="text-white/60 text-sm">{region.trailCount * 38} trails filmed</p>
                   <div className="mt-4 flex items-center gap-1 text-green-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
                     Explore
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
@@ -350,7 +350,7 @@ export default function LandingPage() {
             {stats.map((stat) => (
               <div key={stat.label}>
                 <div className="text-3xl sm:text-4xl font-extrabold text-green-400 mb-1">{stat.value}</div>
-                <div className="text-sm text-white/50">{stat.label}</div>
+                <div className="text-sm text-white/60">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -381,7 +381,7 @@ export default function LandingPage() {
                 ))}
               </div>
               <div className="bg-brand-dark text-white rounded-xl p-5">
-                <div className="text-sm text-white/50 mb-1">Example: Top contributor with 10 popular trails</div>
+                <div className="text-sm text-white/60 mb-1">Example: Top contributor with 10 popular trails</div>
                 <div className="text-2xl font-bold text-green-400">$850+ / month</div>
                 <div className="text-xs text-white/40 mt-1">Based on 15,000 views/trail at Trailblazer tier</div>
               </div>
@@ -394,10 +394,10 @@ export default function LandingPage() {
               </Link>
             </div>
             {/* Upload flow preview */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
               <div className="bg-brand-dark text-white px-6 py-4">
                 <div className="text-sm font-semibold">Upload Your Trail</div>
-                <div className="text-xs text-white/50">4 simple steps</div>
+                <div className="text-xs text-white/60">4 simple steps</div>
               </div>
               <div className="p-6 space-y-6">
                 {[
@@ -444,7 +444,7 @@ export default function LandingPage() {
           </div>
 
           <Link href="/trail?id=top-of-the-world" className="group block">
-            <div className="relative bg-brand-dark rounded-2xl overflow-hidden shadow-xl border border-white/5">
+            <div className="relative bg-brand-dark rounded-xl overflow-hidden shadow-xl border border-white/5">
               {/* Background gradient */}
               <div className="absolute inset-0 bg-gradient-to-r from-brand-dark via-brand-mid/80 to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -484,7 +484,7 @@ export default function LandingPage() {
                     <div className="flex items-center gap-2 bg-white/10 rounded-xl px-4 py-2.5">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-green-400"><polygon points="8 5 20 12 8 19" /></svg>
                       <span className="text-white font-bold text-lg">14,280</span>
-                      <span className="text-white/50 text-xs">plays this week</span>
+                      <span className="text-white/60 text-xs">plays this week</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-full bg-green-500/20 border border-green-400/30 flex items-center justify-center text-xs font-bold text-green-400">N</div>
@@ -518,7 +518,7 @@ export default function LandingPage() {
           </div>
           <div className="grid md:grid-cols-3 gap-6 stagger-children">
             {sampleTrails.slice(0, 6).map((trail) => (
-              <Link href={`/trail?id=${trail.id}`} key={trail.id} className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 card-hover">
+              <Link href={`/trail?id=${trail.id}`} key={trail.id} className="group bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 card-hover">
                 {/* Trail preview header */}
                 <div className="aspect-[16/9] relative bg-gradient-to-br from-brand-dark via-brand-mid to-brand-light flex items-end p-4">
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />

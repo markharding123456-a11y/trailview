@@ -335,7 +335,7 @@ function TrailContent() {
               {videoUrl && (
                 <div className="bg-black px-4 py-3 border-t border-white/5">
                   <div className="flex items-center gap-3">
-                    <button onClick={togglePlay} disabled={!videoReady} aria-label={isPlaying ? "Pause" : "Play"} className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-30 flex-shrink-0">
+                    <button onClick={togglePlay} disabled={!videoReady} aria-label={isPlaying ? "Pause" : "Play"} className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-30 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400">
                       {isPlaying ? <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" /></svg> : <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="8 5 20 12 8 19" /></svg>}
                     </button>
                     <div className="flex-1 h-8 flex items-center cursor-pointer group" onClick={handleScrub}>
@@ -399,7 +399,7 @@ function TrailContent() {
             <div className="bg-brand-dark rounded-xl p-5 text-white text-center">
               <h3 className="font-bold mb-2">Want to film this trail?</h3>
               <p className="text-sm text-white/60 mb-4">Contributors earn up to $0.008 per view</p>
-              <Link href="/signup/contributor" className="block w-full bg-green-500 hover:bg-green-400 py-3 rounded-xl font-semibold transition-all">Become a Contributor</Link>
+              <Link href="/signup/contributor" className="block w-full bg-green-500 hover:bg-green-400 text-white py-3 rounded-xl font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2">Become a Contributor</Link>
             </div>
           </div>
         </div>

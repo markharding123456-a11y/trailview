@@ -92,8 +92,8 @@ export default function LeaderboardPage() {
           <h1 className="text-3xl sm:text-4xl font-bold mb-2">
             TrailView Leaderboard
           </h1>
-          <p className="text-white/50 text-lg">Top Contributors</p>
-          <p className="text-white/30 text-sm mt-2">
+          <p className="text-white/60 text-lg">Top Contributors</p>
+          <p className="text-white/40 text-sm mt-2">
             Ranked by number of live trails published
           </p>
         </div>
@@ -159,7 +159,7 @@ export default function LeaderboardPage() {
                         {c.name}
                       </div>
                       {c.regions.length > 0 && (
-                        <div className="text-xs text-gray-400 truncate mt-0.5">
+                        <div className="text-xs text-gray-500 truncate mt-0.5">
                           {c.regions.join(", ")}
                         </div>
                       )}
@@ -223,9 +223,9 @@ export default function LeaderboardPage() {
         )}
 
         {/* CTA */}
-        <div className="mt-12 bg-brand-dark rounded-2xl p-8 text-white text-center">
+        <div className="mt-12 bg-brand-dark rounded-xl p-8 text-white text-center">
           <h3 className="text-xl font-bold mb-2">Join the Leaderboard</h3>
-          <p className="text-white/50 mb-6">
+          <p className="text-white/60 mb-6">
             Film trails, share them with the community, and climb the ranks.
           </p>
           <div className="flex gap-3 justify-center">

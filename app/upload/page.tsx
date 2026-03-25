@@ -240,7 +240,7 @@ export default function UploadPage() {
           <div className="flex flex-col gap-3">
             <button
               onClick={resetForm}
-              className="w-full py-3 bg-green-500 hover:bg-green-400 text-white font-semibold rounded-xl transition-all"
+              className="w-full py-3 bg-green-500 hover:bg-green-400 text-white font-semibold rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
             >
               Submit Another Trail
             </button>
@@ -276,11 +276,13 @@ export default function UploadPage() {
 
             {/* GPX Upload */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">GPX File</label>
+              <label htmlFor="gpx-file-input" className="block text-sm font-semibold text-gray-700 mb-2">GPX File</label>
               <div
                 onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
                 onDragLeave={() => setDragging(false)}
                 onDrop={handleDrop}
+                role="button"
+                aria-label="Drop GPX file here or click to select"
                 className={`rounded-xl p-5 border-2 border-dashed transition-colors ${
                   dragging ? "border-green-400 bg-green-50" : errors.gpx ? "border-red-300 bg-red-50" : "border-gray-300 bg-gray-50"
                 }`}
@@ -288,6 +290,7 @@ export default function UploadPage() {
                 <input
                   type="file"
                   accept=".gpx"
+                  id="gpx-file-input"
                   onChange={handleGpxUpload}
                   className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-brand-dark file:text-white file:font-semibold file:cursor-pointer hover:file:bg-brand-mid"
                 />
@@ -303,11 +306,13 @@ export default function UploadPage() {
 
             {/* Video Upload */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Trail Video</label>
+              <label htmlFor="video-file-input" className="block text-sm font-semibold text-gray-700 mb-2">Trail Video</label>
               <div
                 onDragOver={(e) => { e.preventDefault(); setVideoDragging(true); }}
                 onDragLeave={() => setVideoDragging(false)}
                 onDrop={handleVideoDrop}
+                role="button"
+                aria-label="Drop video file here or click to select"
                 className={`rounded-xl p-5 border-2 border-dashed transition-colors ${
                   videoDragging ? "border-green-400 bg-green-50" : errors.video ? "border-red-300 bg-red-50" : "border-gray-300 bg-gray-50"
                 }`}
@@ -315,6 +320,7 @@ export default function UploadPage() {
                 <input
                   type="file"
                   accept=".mp4,.mov,.webm"
+                  id="video-file-input"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) handleVideoFileSelect(file);
@@ -371,7 +377,7 @@ export default function UploadPage() {
                     key={activity}
                     type="button"
                     onClick={() => toggleActivity(activity)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 ${
                       form.activity.includes(activity)
                         ? "bg-brand-dark text-white border-brand-dark shadow"
                         : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200"
@@ -409,7 +415,7 @@ export default function UploadPage() {
                     key={d.value}
                     type="button"
                     onClick={() => setForm({ ...form, difficulty: d.value })}
-                    className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-all border-2 ${
+                    className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 ${
                       form.difficulty === d.value
                         ? `${d.color} text-white border-transparent shadow-lg scale-105`
                         : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
@@ -488,7 +494,7 @@ export default function UploadPage() {
             <button
               type="submit"
               disabled={isUploading}
-              className="w-full py-3.5 bg-green-500 hover:bg-green-400 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-base rounded-xl transition-all shadow-lg hover:shadow-green-500/25"
+              className="w-full py-3.5 bg-green-500 hover:bg-green-400 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-base rounded-xl transition-colors shadow-lg hover:shadow-green-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
             >
               {isUploading ? "Uploading..." : "Submit Trail"}
             </button>

@@ -95,7 +95,7 @@ export default function ActivitiesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {activityData.map(({ activity, trails, emoji, description }) => (
-            <div key={activity} className="bg-white rounded-xl border border-gray-200 overflow-hidden card-hover shadow-sm">
+            <div key={activity} className="bg-white rounded-xl border border-gray-100 overflow-hidden card-hover shadow-sm">
               {/* Card Header */}
               <div className="p-6">
                 <div className="flex items-center gap-3 mb-3">
