@@ -3,21 +3,15 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import { sampleTrails, difficultyColors, difficultyLabels } from "@/lib/sample-trails";
+import { getAssetUrl } from "@/lib/cloudflare";
 
 // Use "Top of the World" as the demo trail
 const trail = sampleTrails[0];
 const coords = trail.coordinates;
 const totalPoints = coords.length;
 
-// Nate Hills – "Mountain Biking Top of the World, Whistler Bike Park"
-const YOUTUBE_VIDEO_ID = "PcNvGXAYA0w";
-
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: () => void;
-  }
-}
+// Demo video — replace with R2 asset key when real content is uploaded
+const DEMO_VIDEO_URL = "/api/assets/video/demo/top-of-the-world.mp4";
 
 export default function TrailDetailPage() {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -26,20 +20,18 @@ export default function TrailDetailPage() {
   const pulseRef = useRef<any>(null);
   const progressLineRef = useRef<any>(null);
 
-  const ytPlayerRef = useRef<any>(null);
-  const videoDurationRef = useRef<number>(0);
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [speed, setSpeed] = useState(0);
-  const [ytReady, setYtReady] = useState(false);
   const [videoDuration, setVideoDuration] = useState(0);
+  const [videoReady, setVideoReady] = useState(false);
 
   const currentCoord = coords[currentIndex];
   const progress = totalPoints > 1 ? currentIndex / (totalPoints - 1) : 0;
 
-  // Time display — uses real video duration once available
+  // Time display
   const totalSec = videoDuration || trail.durationMin * 60;
   const elapsedSec = Math.round(progress * totalSec);
   const elapsedMin = Math.floor(elapsedSec / 60);
@@ -63,96 +55,55 @@ export default function TrailDetailPage() {
         Math.sin(dLng / 2) ** 2;
     const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const timePerStep =
-      (videoDurationRef.current || trail.durationMin * 60) / totalPoints;
+      (videoDuration || trail.durationMin * 60) / totalPoints;
     const speedKmh = (dist / timePerStep) * 3600;
     return Math.min(speedKmh, 65) + Math.random() * 3;
-  }, []);
+  }, [videoDuration]);
 
-  // Load YouTube IFrame API and create player
+  // Video event handlers
   useEffect(() => {
-    const initPlayer = () => {
-      if (!window.YT || !window.YT.Player) return;
+    const video = videoRef.current;
+    if (!video) return;
 
-      ytPlayerRef.current = new window.YT.Player("yt-player-container", {
-        videoId: YOUTUBE_VIDEO_ID,
-        playerVars: {
-          autoplay: 0,
-          controls: 0,
-          modestbranding: 1,
-          rel: 0,
-          showinfo: 0,
-          iv_load_policy: 3,
-          fs: 0,
-          playsinline: 1,
-          origin:
-            typeof window !== "undefined" ? window.location.origin : "",
-        },
-        events: {
-          onReady: (event: any) => {
-            const dur = event.target.getDuration();
-            videoDurationRef.current = dur;
-            setVideoDuration(dur);
-            setYtReady(true);
-          },
-          onStateChange: (event: any) => {
-            // 1 = PLAYING, 2 = PAUSED, 0 = ENDED
-            if (event.data === 1) {
-              setIsPlaying(true);
-            } else if (event.data === 2 || event.data === 0) {
-              setIsPlaying(false);
-              if (event.data === 0) {
-                setCurrentIndex(totalPoints - 1);
-              }
-            }
-          },
-        },
-      });
+    const onLoadedMetadata = () => {
+      setVideoDuration(video.duration);
+      setVideoReady(true);
     };
 
-    if (window.YT && window.YT.Player) {
-      initPlayer();
-    } else {
-      window.onYouTubeIframeAPIReady = initPlayer;
-      if (!document.getElementById("yt-api-script")) {
-        const tag = document.createElement("script");
-        tag.id = "yt-api-script";
-        tag.src = "https://www.youtube.com/iframe_api";
-        document.head.appendChild(tag);
+    const onTimeUpdate = () => {
+      if (video.duration > 0) {
+        const fraction = video.currentTime / video.duration;
+        const idx = Math.round(fraction * (totalPoints - 1));
+        setCurrentIndex(Math.min(idx, totalPoints - 1));
       }
+    };
+
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+    const onEnded = () => {
+      setIsPlaying(false);
+      setCurrentIndex(totalPoints - 1);
+    };
+
+    video.addEventListener("loadedmetadata", onLoadedMetadata);
+    video.addEventListener("timeupdate", onTimeUpdate);
+    video.addEventListener("play", onPlay);
+    video.addEventListener("pause", onPause);
+    video.addEventListener("ended", onEnded);
+
+    // If metadata already loaded (cached video)
+    if (video.readyState >= 1) {
+      onLoadedMetadata();
     }
 
     return () => {
-      if (ytPlayerRef.current) {
-        try {
-          ytPlayerRef.current.destroy();
-        } catch {}
-        ytPlayerRef.current = null;
-      }
+      video.removeEventListener("loadedmetadata", onLoadedMetadata);
+      video.removeEventListener("timeupdate", onTimeUpdate);
+      video.removeEventListener("play", onPlay);
+      video.removeEventListener("pause", onPause);
+      video.removeEventListener("ended", onEnded);
     };
   }, []);
-
-  // Poll video time → update GPS index
-  useEffect(() => {
-    if (isPlaying) {
-      pollIntervalRef.current = setInterval(() => {
-        if (!ytPlayerRef.current) return;
-        try {
-          const t = ytPlayerRef.current.getCurrentTime();
-          const d = ytPlayerRef.current.getDuration();
-          if (d > 0) {
-            videoDurationRef.current = d;
-            const idx = Math.round((t / d) * (totalPoints - 1));
-            setCurrentIndex(Math.min(idx, totalPoints - 1));
-          }
-        } catch {}
-      }, 200);
-    } else {
-      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-    }
-    return () => {
-      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-    };
-  }, [isPlaying]);
 
   // Initialize Leaflet map
   useEffect(() => {
@@ -302,24 +253,27 @@ export default function TrailDetailPage() {
   }, [currentIndex, currentCoord, isPlaying, getSpeed]);
 
   const togglePlay = () => {
-    if (!ytPlayerRef.current) return;
+    const video = videoRef.current;
+    if (!video) return;
     if (isPlaying) {
-      ytPlayerRef.current.pauseVideo();
+      video.pause();
     } else {
       if (currentIndex >= totalPoints - 1) {
-        ytPlayerRef.current.seekTo(0, true);
+        video.currentTime = 0;
         setCurrentIndex(0);
       }
-      ytPlayerRef.current.playVideo();
+      video.play();
     }
   };
 
   const handleScrub = (e: React.MouseEvent<HTMLDivElement>) => {
+    const video = videoRef.current;
+    if (!video) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     setCurrentIndex(Math.round(pct * (totalPoints - 1)));
-    if (ytPlayerRef.current && videoDurationRef.current > 0) {
-      ytPlayerRef.current.seekTo(pct * videoDurationRef.current, true);
+    if (video.duration > 0) {
+      video.currentTime = pct * video.duration;
     }
   };
 
@@ -397,16 +351,19 @@ export default function TrailDetailPage() {
           {/* Video Player */}
           <div className="lg:col-span-3">
             <div className="bg-black rounded-2xl overflow-hidden shadow-2xl">
-              {/* YouTube iframe + HUD overlays */}
+              {/* Native HTML5 Video Player */}
               <div className="aspect-video relative bg-black">
-                {/* YouTube replaces this div with an iframe */}
-                <div
-                  id="yt-player-container"
-                  className="absolute inset-0 w-full h-full"
-                />
+                <video
+                  ref={videoRef}
+                  className="absolute inset-0 w-full h-full object-contain"
+                  preload="metadata"
+                  playsInline
+                >
+                  <source src={DEMO_VIDEO_URL} type="video/mp4" />
+                </video>
 
                 {/* Loading state */}
-                {!ytReady && (
+                {!videoReady && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 z-20 gap-3">
                     <div className="w-10 h-10 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
                     <div className="text-white/40 text-xs">
@@ -415,7 +372,7 @@ export default function TrailDetailPage() {
                   </div>
                 )}
 
-                {/* HUD Overlays — pointer-events-none so YT controls work */}
+                {/* HUD Overlays */}
                 <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md rounded-xl px-4 py-2 border border-white/10 pointer-events-none z-10">
                   <div className="text-[10px] text-white/40 uppercase tracking-wider">
                     Speed
@@ -476,7 +433,7 @@ export default function TrailDetailPage() {
                   {/* Play / Pause */}
                   <button
                     onClick={togglePlay}
-                    disabled={!ytReady}
+                    disabled={!videoReady}
                     className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-30 flex-shrink-0"
                     aria-label={isPlaying ? "Pause" : "Play"}
                   >
@@ -525,11 +482,6 @@ export default function TrailDetailPage() {
                       / {totalMin}:{totalSecRem.toString().padStart(2, "0")}
                     </span>
                   </div>
-                </div>
-
-                {/* Video credit */}
-                <div className="mt-1.5 text-[10px] text-white/20 text-center">
-                  Video: Nate Hills — Top of the World, Whistler Bike Park
                 </div>
               </div>
             </div>

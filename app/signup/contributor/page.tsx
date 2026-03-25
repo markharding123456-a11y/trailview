@@ -302,13 +302,13 @@ export default function ContributorSignUpPage() {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                    Social Media or YouTube Link <span className="text-gray-400 font-normal">(optional)</span>
+                    Social Media Link <span className="text-gray-400 font-normal">(optional)</span>
                   </label>
                   <input
                     type="url"
                     value={form.socialLink}
                     onChange={(e) => setForm({ ...form, socialLink: e.target.value })}
-                    placeholder="https://youtube.com/@yourhandle"
+                    placeholder="https://instagram.com/yourhandle"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-brand-mid transition-colors"
                   />
                 </div>
