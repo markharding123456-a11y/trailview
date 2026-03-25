@@ -37,7 +37,7 @@ export default function Nav() {
   ];
 
   return (
-    <nav className="bg-brand-dark/95 backdrop-blur-sm text-white sticky top-0 z-50 border-b border-white/10">
+    <nav role="navigation" aria-label="Main navigation" className="bg-brand-dark/95 backdrop-blur-sm text-white sticky top-0 z-50 border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
@@ -51,20 +51,20 @@ export default function Nav() {
 
         {/* Desktop nav - unchanged */}
         <div className="hidden md:flex items-center gap-6">
-          <Link href="/#how-it-works" className="text-sm text-white/80 hover:text-white transition-colors">How It Works</Link>
-          <Link href="/activities" className="text-sm text-white/80 hover:text-white transition-colors">Activities</Link>
-          <Link href="/regions" className="text-sm text-white/80 hover:text-white transition-colors">Regions</Link>
-          <Link href="/contribute" className="text-sm text-white/80 hover:text-white transition-colors">Contribute</Link>
-          <Link href="/upload" className="text-sm text-white/80 hover:text-white transition-colors">Upload</Link>
+          <Link href="/#how-it-works" className="text-sm text-white/80 hover:text-white transition-colors focus-visible:text-white focus-visible:outline-none">How It Works</Link>
+          <Link href="/activities" className="text-sm text-white/80 hover:text-white transition-colors focus-visible:text-white focus-visible:outline-none">Activities</Link>
+          <Link href="/regions" className="text-sm text-white/80 hover:text-white transition-colors focus-visible:text-white focus-visible:outline-none">Regions</Link>
+          <Link href="/contribute" className="text-sm text-white/80 hover:text-white transition-colors focus-visible:text-white focus-visible:outline-none">Contribute</Link>
+          <Link href="/upload" className="text-sm text-white/80 hover:text-white transition-colors focus-visible:text-white focus-visible:outline-none">Upload</Link>
           <Link
             href="/signup"
-            className="bg-green-500 hover:bg-green-400 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-green-500/25"
+            className="bg-green-500 hover:bg-green-400 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-colors shadow-lg hover:shadow-green-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
           >
             Sign Up
           </Link>
           <Link
             href="/explore"
-            className="bg-white/10 hover:bg-white/20 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-all border border-white/20"
+            className="bg-white/10 hover:bg-white/20 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-colors border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2"
           >
             Explore
           </Link>
@@ -73,7 +73,7 @@ export default function Nav() {
         {/* Mobile hamburger button */}
         <button
           onClick={() => setOpen(!open)}
-          className="md:hidden relative w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors"
+          className="md:hidden relative w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
         >
@@ -110,6 +110,8 @@ export default function Nav() {
         {/* Menu panel */}
         <div
           ref={menuRef}
+          role="dialog"
+          aria-label="Mobile menu"
           className={`relative bg-brand-dark border-b border-white/10 shadow-2xl transition-all duration-300 ease-out ${
             open ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0"
           }`}
@@ -120,7 +122,7 @@ export default function Nav() {
                 key={link.href}
                 href={link.href}
                 onClick={close}
-                className="text-white/80 hover:text-white hover:bg-white/5 px-4 py-3 rounded-lg text-base font-medium transition-colors"
+                className="text-white/80 hover:text-white hover:bg-white/5 px-4 py-3 rounded-lg text-base font-medium transition-colors focus-visible:text-white focus-visible:outline-none"
               >
                 {link.label}
               </Link>
@@ -131,14 +133,14 @@ export default function Nav() {
               <Link
                 href="/signup"
                 onClick={close}
-                className="bg-green-500 hover:bg-green-400 text-white text-center px-5 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-green-500/25"
+                className="bg-green-500 hover:bg-green-400 text-white text-center px-5 py-3 rounded-xl text-sm font-semibold transition-colors shadow-lg hover:shadow-green-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
               >
                 Sign Up
               </Link>
               <Link
                 href="/explore"
                 onClick={close}
-                className="bg-white/10 hover:bg-white/20 text-white text-center px-5 py-3 rounded-lg text-sm font-semibold transition-all border border-white/20"
+                className="bg-white/10 hover:bg-white/20 text-white text-center px-5 py-3 rounded-xl text-sm font-semibold transition-colors border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2"
               >
                 Explore
               </Link>

@@ -196,9 +196,11 @@ export default function AdminPage() {
 
       <div className="max-w-7xl mx-auto px-6 py-6">
         {loading ? (
-          <div className="text-center py-20 text-gray-400">
-            <div className="w-8 h-8 border-2 border-gray-300 border-t-green-500 rounded-full animate-spin mx-auto mb-3" />
-            Loading...
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-10 h-10 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-sm text-gray-400">Loading dashboard...</p>
+            </div>
           </div>
         ) : (
           <>

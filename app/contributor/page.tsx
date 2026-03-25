@@ -10,7 +10,10 @@ export default function ContributorPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-10 h-10 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
+        <div className="text-center">
+          <div className="w-10 h-10 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-gray-400">Loading contributor...</p>
+        </div>
       </div>
     }>
       <ContributorContent />
@@ -51,7 +54,10 @@ function ContributorContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-10 h-10 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
+        <div className="text-center">
+          <div className="w-10 h-10 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-gray-400">Loading contributor...</p>
+        </div>
       </div>
     );
   }

@@ -7,7 +7,7 @@ import { sampleTrails, activityTypes, difficultyColors, difficultyLabels, type S
 
 export default function ExplorePage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-[calc(100vh-57px)]"><div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="text-center"><div className="w-10 h-10 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin mx-auto mb-3" /><p className="text-sm text-gray-400">Loading trails...</p></div></div>}>
       <ExplorePageInner />
     </Suspense>
   );
@@ -143,7 +143,7 @@ function ExplorePageInner() {
         {/* Filters */}
         <div className="p-4 border-b border-gray-100 space-y-3">
           <h1 className="text-xl font-bold text-brand-dark">Explore Trails</h1>
-          <p className="text-sm text-gray-400">{filteredTrails.length} trails across British Columbia</p>
+          <p className="text-sm text-gray-500">{filteredTrails.length} trails across British Columbia</p>
 
           {/* Search input */}
           <div className="relative">
@@ -155,11 +155,13 @@ function ExplorePageInner() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by trail name or region..."
+              aria-label="Search trails"
               className="w-full pl-9 pr-9 py-2 rounded-lg border border-gray-200 text-sm text-brand-dark placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500 transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
+                aria-label="Clear search"
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
@@ -233,7 +235,7 @@ function ExplorePageInner() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-brand-dark text-sm truncate">{trail.name}</h3>
-                  <p className="text-xs text-gray-400 mt-0.5">{trail.region}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{trail.region}</p>
                   <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400">
                     <span className="flex items-center gap-1">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z"/></svg>
@@ -259,7 +261,7 @@ function ExplorePageInner() {
 
       {/* Map */}
       <div className="flex-1 relative">
-        <div ref={mapRef} className="w-full h-full" style={{ minHeight: 400 }} />
+        <div ref={mapRef} role="application" aria-label="Trail map" className="w-full h-full" style={{ minHeight: 400 }} />
 
         {/* Selected trail overlay */}
         {selectedTrail && (
@@ -270,6 +272,7 @@ function ExplorePageInner() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <button
                   onClick={() => setSelectedTrail(null)}
+                  aria-label="Close trail details"
                   className="absolute top-3 right-3 w-8 h-8 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition-colors"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>

@@ -13,7 +13,10 @@ export default function TrailDetailPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-10 h-10 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
+        <div className="text-center">
+          <div className="w-10 h-10 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-gray-400">Loading trail...</p>
+        </div>
       </div>
     }>
       <TrailContent />
@@ -192,7 +195,10 @@ function TrailContent() {
   if (loadingTrail) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-10 h-10 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
+        <div className="text-center">
+          <div className="w-10 h-10 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-gray-400">Loading trail...</p>
+        </div>
       </div>
     );
   }
@@ -202,7 +208,7 @@ function TrailContent() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-brand-dark mb-2">Trail Not Found</h2>
-          <p className="text-gray-400 mb-4">This trail doesn&apos;t exist or was removed.</p>
+          <p className="text-gray-500 mb-4">This trail doesn&apos;t exist or was removed.</p>
           <Link href="/explore" className="bg-green-500 text-white px-6 py-3 rounded-lg font-semibold">Explore Trails</Link>
         </div>
       </div>
@@ -221,7 +227,7 @@ function TrailContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           <div className="flex items-start justify-between">
             <div>
-              <Link href="/explore" className="text-white/50 hover:text-white text-sm transition-colors flex items-center gap-1 mb-2">
+              <Link href="/explore" className="text-white/60 hover:text-white text-sm transition-colors flex items-center gap-1 mb-2">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
                 Back to Explore
               </Link>
@@ -231,8 +237,8 @@ function TrailContent() {
                 </span>
                 <h1 className="text-2xl sm:text-3xl font-bold">{trailName}</h1>
               </div>
-              <p className="text-white/50">{trailRegion}</p>
-              {contributorName && <p className="text-white/30 text-sm mt-1">Filmed by {contributorName}</p>}
+              <p className="text-white/60">{trailRegion}</p>
+              {contributorName && <p className="text-white/40 text-sm mt-1">Filmed by {contributorName}</p>}
               {isDemo && <span className="inline-block mt-2 px-2 py-1 bg-amber-500/20 text-amber-300 text-xs rounded font-semibold">DEMO TRAIL</span>}
             </div>
             <div className="flex flex-col items-end gap-3">
@@ -346,7 +352,7 @@ function TrailContent() {
 
             {/* Elevation */}
             {coords.length > 2 && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mt-4">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mt-4">
                 <h3 className="font-semibold text-brand-dark text-sm mb-3">Elevation Profile</h3>
                 <div className="relative h-24">
                   <svg viewBox={`0 0 ${totalPoints} 100`} className="w-full h-full" preserveAspectRatio="none">
